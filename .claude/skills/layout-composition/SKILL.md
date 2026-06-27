@@ -74,7 +74,7 @@ optional, let it fill the screen."
 
 2. **Lay the grid on the 8pt rhythm.** Choose columns by need (12 for flexible app layouts,
    4–6 for simpler content), set gutters and outer margins as scale steps, and pin a content
-   `max-width` tied to the measure (≈60–75ch for text). 8pt because it divides cleanly, scales
+   `max-width` tied to the measure `design-tokens` owns (≈45–75ch for text). 8pt because it divides cleanly, scales
    to crisp pixels at 1×/2×/3×, and aligns to common viewport sizes. See
    `references/grid-and-spacing.md`.
 

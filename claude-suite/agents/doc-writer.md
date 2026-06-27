@@ -1,12 +1,15 @@
 ---
 name: doc-writer
 description: >
-  Write or update product documentation — READMEs, guides, API references, changelogs —
-  in the product voice, structured by audience and leading with the why, with runnable examples.
-  Use when: "write the docs for this", "document this feature", "update the README",
+  Write or update product documentation — guides, feature docs, and changelogs — in the product
+  voice, structured by audience and leading with the why, with runnable examples. Composes the
+  doc skills' procedures (readme-author, technical-writing, api-docs-from-trpc) as the Write-able
+  agent that executes them.
+  Use when: "write the docs for this", "document this feature",
   "explain how X works for users", "draft a guide for the new endpoint".
-  Do NOT use for: generating API reference from tRPC routers (hand to api-docs-from-trpc),
-  or reviewing prose for quality (hand to technical-writing).
+  Do NOT use for: a repository README specifically (hand to readme-author), generating API
+  reference from tRPC routers (hand to api-docs-from-trpc), or reviewing prose for quality (hand
+  to technical-writing).
 tools: Read, Grep, Glob, Edit, Write
 model: sonnet
 ---

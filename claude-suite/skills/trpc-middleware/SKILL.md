@@ -1,14 +1,15 @@
 ---
 name: trpc-middleware
 description: >
-  Author the tRPC middleware layer for the edge stack: the `protectedProcedure` auth gate
-  that narrows `ctx.auth.userId` to non-null (the foundation Rule 2 builds on), plus
-  structured logging/timing and a rate-limit middleware — while keeping every procedure thin
-  (validate, authorize, call a function, return). Produces the reusable procedure builders in
-  `src/server/api/trpc.ts`, not per-feature logic.
+  Author the tRPC middleware **bodies** for the edge stack: the `protectedProcedure` auth-gate
+  body that narrows `ctx.auth.userId` to non-null (the foundation Rule 2 builds on), plus
+  structured logging/timing and a rate-limit middleware — composed onto the procedure bases
+  that `trpc-router-compose` already created, keeping every procedure thin (validate, authorize,
+  call a function, return). It authors the middleware, not the context or the base builders.
   Use when: "trpc middleware", "protected procedure", "rate limit procedure", "auth middleware".
-  Do NOT use for: per-feature ownership checks on a specific row (use vertical-slice), or
-  threat-modeling a feature's abuse cases (use security-pass).
+  Do NOT use for: standing up the context / `t` instance / base `publicProcedure`·`protectedProcedure`
+  builders (use trpc-router-compose); per-feature ownership checks on a specific row (use
+  vertical-slice); threat-modeling a feature's abuse cases (use security-pass).
 license: Apache-2.0
 metadata:
   version: "0.1"
@@ -21,10 +22,12 @@ metadata:
 
 # trpc-middleware
 
-The procedure-builder layer every tRPC router stands on. This skill builds the shared
-middleware in `src/server/api/trpc.ts` — the `protectedProcedure` auth gate, request
-logging/timing, and rate limiting — so that `vertical-slice` only ever adds the thin,
-per-feature ownership check on top. It draws the line between what the gate guarantees
+The middleware layer composed onto the procedure bases that `trpc-router-compose` stands up.
+This skill authors the shared middleware that hangs off those bases in `src/server/api/trpc.ts`
+— the `protectedProcedure` auth gate, request logging/timing, and rate limiting — so that
+`vertical-slice` only ever adds the thin, per-feature ownership check on top. It does not
+create the context or the base `publicProcedure`/`protectedProcedure` builders; that is
+`trpc-router-compose`'s job, which this skill extends. It draws the line between what the gate guarantees
 (an authenticated `ctx.auth.userId`) and what it deliberately does not (ownership of a
 specific row — Rule 2). The spine and rules live in `../../CLAUDE.md`; this skill does not
 restate them.
@@ -56,8 +59,9 @@ middleware saves a function call"; "rate-limit by IP is fine, headers are trustw
 
 ## When to Use
 
-- Standing up `src/server/api/trpc.ts`: `createTRPCContext`, the `t` instance, and the
-  `publicProcedure` / `protectedProcedure` builders.
+- Authoring the middleware bodies on an existing `trpc.ts` — the auth-gate body, logging/timing,
+  rate-limit (the context + base `publicProcedure`/`protectedProcedure` builders come from
+  `trpc-router-compose`).
 - Adding a cross-cutting middleware: timing/structured logging, or a rate-limit gate.
 - Composing a new reusable procedure variant (e.g. `rateLimitedProcedure`) from existing ones.
 

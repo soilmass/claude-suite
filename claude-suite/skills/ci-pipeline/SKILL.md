@@ -3,8 +3,8 @@ name: ci-pipeline
 description: >
   Wire the project's GitHub Actions pipeline so every quality gate runs on every PR and
   blocks merge — typecheck, lint, the rule-audit suite, coverage, the a11y axe run, the
-  perf budget, and the dependency scan — each as a job that fails the build on a non-zero
-  exit, never a report-only step. Encodes what generated CI gets wrong: gates that print
+  perf budget, the dependency scan, the secret scan, and the visual-regression snapshot —
+  each as a job that fails the build on a non-zero exit, never a report-only step. Encodes what generated CI gets wrong: gates that print
   green but never fail, `continue-on-error` smuggled in, jobs not wired to branch protection,
   and secrets pasted into the workflow. The pipeline is the enforcement surface for the whole
   definition of done.
@@ -71,8 +71,10 @@ branch protection after merge" (the unprotected window is when bad code lands), 
 1. **Inventory the gates this repo has, and their exit-code contract (low cost, do first).**
    Each gate is a script with a defined exit code (suite convention: exit code = number of
    findings, 0 = clean). List them: typecheck (`tsc --noEmit`), lint, the rule-audit scan,
-   `coverage-gate`, `ci-a11y-test`, `perf-budget-check`, `dependency-audit`. A job runs one
-   gate's script; CI fails when it exits non-zero. See `references/workflow.md`.
+   `coverage-gate`, `ci-a11y-test`, `perf-budget-check`, `dependency-audit`, `secret-scan`
+   (Rule 9 — greps working tree + history, cheap, build-failing), and the `visual-regression`
+   snapshot (rides the `playwright-e2e` job's webServer/storageState). A job runs one gate's
+   script; CI fails when it exits non-zero. See `references/workflow.md`.
 
 2. **Trigger on `pull_request` (and `merge_group` for a merge queue), not push-only (low
    cost).** PRs are the enforcement point. Add `on: push` to the default branch only as a
@@ -112,8 +114,8 @@ branch protection after merge" (the unprotected window is when bad code lands), 
 
 ## Composes With
 - **Consumes:** `rule-audit`, `coverage-gate`, `perf-budget-check`, `ci-a11y-test`,
-  `dependency-audit` — each is a job in this pipeline; this skill owns their wiring, not their
-  logic.
+  `dependency-audit`, `secret-scan`, `visual-regression` — each is a job in this pipeline; this
+  skill owns their wiring, not their logic.
 - **Runs against:** every PR's diff and built app on the edge-equivalent CI runner.
 - **Hands off:** the green, gated artifact to `deploy-edge` for shipping; threshold/version
   staleness to `perishable-refresh`.
