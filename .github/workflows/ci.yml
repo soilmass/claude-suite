@@ -1,0 +1,90 @@
+name: suite-ci
+
+# Every quality gate for the skills suite runs on every PR and blocks merge.
+# Each gate is a build-failing job (non-zero exit fails the build) — never report-only.
+# This repo is a skills suite (no app / package.json), so the gates are suite-integrity
+# gates: the structural+coherence audit, script integrity, and the two-tree sync invariant.
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  suite-audit:
+    name: suite-audit
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      # Structural + coherence audit over the distributable suite (the canonical tree).
+      # Exit code = number of structural findings; 0 = clean. No --write in CI (read-only).
+      - name: Audit claude-suite (0 findings required)
+        run: node .claude/skills/suite-audit/scripts/audit.mjs claude-suite
+
+  scripts:
+    name: scripts
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      # Syntax-check every bundled script (exclude Workflow-DSL harness files under tests/).
+      - name: node --check every bundled script
+        run: |
+          fail=0
+          while IFS= read -r f; do
+            node --check "$f" || { echo "::error file=$f::syntax error"; fail=1; }
+          done < <(find .claude claude-suite -name '*.mjs' -path '*/scripts/*' -not -name '*.workflow.mjs')
+          if [ "$fail" -ne 0 ]; then echo "bundled script(s) failed syntax check"; exit 1; fi
+      # Self-test the deterministic checkers against their known exit-code contracts.
+      - name: checker self-tests (exit-code contracts)
+        run: |
+          assert() { # <label> <expected-exit> <actual-exit>
+            if [ "$2" -ne "$3" ]; then echo "::error::$1 expected exit $2, got $3"; exit 1; fi
+            echo "ok: $1 (exit $3)"
+          }
+          rc=0; node .claude/skills/color-system/scripts/cvd-check.mjs "oklch(0.6 0.18 25)" "oklch(0.6 0.18 145)" >/dev/null 2>&1 || rc=$?
+          assert "cvd-check: CVD collapse is caught" 1 "$rc"
+          rc=0; node .claude/skills/color-system/scripts/cvd-check.mjs "oklch(0.62 0.19 256)" "#e11d48" >/dev/null 2>&1 || rc=$?
+          assert "cvd-check: distinct colors pass" 0 "$rc"
+          rc=0; node .claude/skills/color-system/scripts/cvd-check.mjs --ramp "oklch(0.97 0.02 256)" "oklch(0.6 0.16 256)" "oklch(0.8 0.09 256)" >/dev/null 2>&1 || rc=$?
+          assert "cvd-check: non-monotonic ramp is caught" 1 "$rc"
+          rc=0; node .claude/skills/design-tokens/scripts/contrast.mjs "#000000" "#ffffff" >/dev/null 2>&1 || rc=$?
+          assert "contrast: black/white passes AA" 0 "$rc"
+          rc=0; node .claude/skills/design-tokens/scripts/contrast.mjs "#777777" "#888888" >/dev/null 2>&1 || rc=$?
+          assert "contrast: low-contrast pair fails AA" 1 "$rc"
+
+  tree-sync:
+    name: tree-sync
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      # Invariant: every distributable skill is byte-identical in claude-suite/ (source)
+      # and .claude/ (installed copy). Foundation skills live only in .claude/ and are not
+      # checked here. Drift between the two copies, or a distributable skill missing from
+      # the install, fails the build.
+      - name: distributable skills identical across both trees
+        run: |
+          drift=0
+          for d in claude-suite/skills/*/; do
+            s=$(basename "$d")
+            if [ -d ".claude/skills/$s" ]; then
+              diff -rq "claude-suite/skills/$s" ".claude/skills/$s" || { echo "::error::drift in skill '$s' between claude-suite/ and .claude/"; drift=1; }
+            else
+              echo "::error::distributable skill '$s' is missing from .claude/skills/"; drift=1
+            fi
+          done
+          if [ "$drift" -ne 0 ]; then echo "two-tree sync invariant violated"; exit 1; fi
+          echo "all distributable skills are in sync"
