@@ -14,7 +14,7 @@ description: >
 license: Apache-2.0
 metadata:
   version: "0.1"
-  source_of_truth: ../../CLAUDE.md
+  source_of_truth: ../../../CLAUDE.md
   changelog: >
     v0.1 — initial draft. The nine rules are defined in CLAUDE.md; this skill enforces
     them and does not redefine them. Baseline section is the encoded failure class;
@@ -96,16 +96,20 @@ specific rather than "looked fine."
 
 ---
 
-## Baseline failure (REPLACE WITH OBSERVED TRANSCRIPT)
+## Baseline failure (observed 2026-06-26)
 
-> Encoded failure class per the capability map; replace with a real run-without-the-skill
-> transcript before treating this as evaluated.
+> Captured by running the task without this skill (a general-purpose agent, no project conventions). The encoded failure class was confirmed.
 
-**Failure class encoded:** Without a mechanical audit, a human reviewing generated code
-at speed approves diffs that compile and look right but carry: an `any` bridging a broken
-type boundary, a `protectedProcedure` with no ownership check, a hardcoded `#3b82f6`, a
-component with only its success state, a money column typed `real`, or a query inside a
-`.map`. Each is invisible at review speed; each ships.
+**Observed run.** A naive reviewer (no skill) was shown a planted-flaw artifact and asked to review it. It correctly caught the four surface-level rule breaches — the unscoped `remove` delete (Rule 2 IDOR), the `p:any` at the render boundary (Rule 1), the hardcoded hex (Rule 3), and the missing loading/error/empty states (Rule 4) — and returned "Not mergeable." But it missed that the *list query itself* is also unscoped: the same ownership hole as `remove` exists on the read path, and `data ?? []` quietly masks it as a benign empty.
+
+```ts
+remove: protectedProcedure.input(z.object({ id: z.string() }))
+  .mutation(({ ctx, input }) => ctx.db.delete(posts).where(eq(posts.id, input.id))),
+// list: returns ALL posts, not scoped to ctx.auth.userId
+{(data ?? []).map((p: any) => <li style={{ color: "#3b82f6" }}>{p.title}</li>)}
+```
+
+**Failure class (confirmed).** A reviewer pattern-matches the loud, local defects (a visible `any`, a hex literal, a delete-by-id) and declares a verdict once it has found "enough" — stopping before it runs the *full* rule set across *every* boundary. The danger isn't the missed cosmetic; it's the second instance of the same ownership class on a path the eye already moved past. This skill forces the complete nine-rule sweep over every procedure and component, so a verdict means "all rules checked everywhere," not "found four things."
 
 ---
 

@@ -12,7 +12,7 @@ description: >
 license: Apache-2.0
 metadata:
   version: "0.1"
-  source_of_truth: ../../CLAUDE.md
+  source_of_truth: ../../../CLAUDE.md
   changelog: >
     v0.1 — initial draft. Retargeted to edge/Drizzle per DECISIONS.md: Clerk edge
     middleware, serverless DB driver, drizzle-kit. Baseline section is the encoded
@@ -78,13 +78,28 @@ and seeds the guard files and gates.
 
 ---
 
-## Baseline failure (REPLACE WITH OBSERVED TRANSCRIPT)
-> Encoded failure class; replace with a real transcript.
+## Baseline failure (observed 2026-06-26)
 
-**Failure class encoded:** Asked to "set up the stack," the agent scaffolds a generic T3
-app that drifts from the decided forks: Prisma instead of Drizzle (fatal at the edge),
-absent or wrong auth wiring, Pages-Router patterns creeping in, no token layer, no
-`CLAUDE.md`/`DECISIONS.md`, and no CI gates — so nothing downstream has rails to run on.
+> Captured by running the task without this skill (a general-purpose agent, no project conventions). The encoded failure class was confirmed.
+
+**Observed run.** Asked to "set up the stack," the agent produced a plausible, compiling
+create-t3-app-style scaffold — but wired the data layer for Node, not the edge. It chose
+`node-postgres` with a module-scoped long-lived TCP `Pool`, never declared `runtime = 'edge'`
+anywhere, and skipped env validation (`process.env.X!` instead of a Zod schema). It also
+used `timestamp` (not `timestamptz`) and `serial` IDs.
+
+```ts
+import { drizzle } from "drizzle-orm/node-postgres";
+import { Pool } from "pg";
+const pool = new Pool({ connectionString: process.env.DATABASE_URL });
+export const db = drizzle(pool, { schema });   // long-lived TCP pool — cannot run at the edge
+```
+
+**Failure class (confirmed).** Asked to scaffold the decided stack, the agent drifts from
+the fork-defining facts: it picks a Node TCP driver that silently breaks the edge-runtime
+target, never pins the runtime, and skips the cross-cutting conventions (validated env,
+`timestamptz`, non-enumerable IDs, CLAUDE.md/DECISIONS.md, CI gates). The result looks
+right and compiles, so the broken rails propagate into everything built on top.
 
 ---
 

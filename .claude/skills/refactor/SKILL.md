@@ -14,7 +14,7 @@ description: >
 license: Apache-2.0
 metadata:
   version: "0.1"
-  source_of_truth: ../../CLAUDE.md
+  source_of_truth: ../../../CLAUDE.md
   changelog: >
     v0.1 — initial draft. Surfaced by the capability map's depth/breadth audit as the
     second daily-loop skill. Baseline section is the encoded failure class; replace with
@@ -91,13 +91,28 @@ compiling for now"; "change the column and the migration in one go."
 
 ---
 
-## Baseline failure (REPLACE WITH OBSERVED TRANSCRIPT)
-> Encoded failure class; replace with a real transcript.
+## Baseline failure (observed 2026-06-26)
 
-**Failure class encoded:** Asked to "rename X everywhere," the agent makes an
-inconsistent partial sweep, misses call sites a human assumed were updated, introduces an
-`any` to silence a mid-refactor type error (severing the very signal that would have found
-the rest), and leaves the codebase half-migrated and compiling-but-wrong.
+> Captured by running the task without this skill (a general-purpose agent, no project conventions). The encoded failure class was confirmed.
+
+**Observed run.** Asked to rename `project`→`workspace` everywhere, the agent edited only
+the three code files in the slice — schema, router, component — and declared it done. It
+renamed the exported `workspaceRouter` but never touched the root router that registers it,
+so the live key stays `project` while the component calls `api.workspace.list` against a
+key that no longer exists. It also missed the directory, the README, several referencing
+skill docs, and authored no migration for the literal table rename.
+
+```ts
+// renamed export, but ~/server/api/root.ts still has:  project: projectRouter
+export const workspaceRouter = createTRPCRouter({ /* ... */ });
+// component now calls a key that doesn't exist on AppRouter:
+const query = api.workspace.list.useQuery(); // type error / runtime undefined
+```
+
+**Failure class (confirmed).** A find/replace within the obvious files leaves a
+half-migrated, compiling-but-wrong codebase: the cross-file registration site is missed,
+the live Drizzle table rename ships with no expand-contract migration, and nothing is
+compiler-verified — so the broken type chain slips through unseen.
 
 ---
 

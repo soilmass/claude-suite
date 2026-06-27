@@ -12,7 +12,7 @@ description: >
 license: Apache-2.0
 metadata:
   version: "0.1"
-  source_of_truth: ../../CLAUDE.md
+  source_of_truth: ../../../CLAUDE.md
   changelog: >
     v0.1 — initial draft. Retargeted to drizzle-kit per DECISIONS.md. Fragile operation →
     exact-command discipline (building-skills density rule). Baseline section is the
@@ -95,13 +95,18 @@ Refuse: "just rename the column in one migration"; "skip the down, we won't roll
 
 ---
 
-## Baseline failure (REPLACE WITH OBSERVED TRANSCRIPT)
-> Encoded failure class; replace with a real transcript.
+## Baseline failure (observed 2026-06-26)
 
-**Failure class encoded:** Asked to "rename/drop a column," the agent writes a single
-destructive migration with no `down`, applied in one deploy — breaking code still
-expecting the old column during the rollout window and leaving no way back. A
-weekend-costing class of error.
+> Captured by running the task without this skill (a general-purpose agent, no project conventions). The encoded failure class was confirmed.
+
+**Observed run.** Asked to rename `users.name` to `title` and drop `legacy_status`, the agent updated the schema and let `drizzle-kit generate` emit one destructive migration that runs the RENAME and DROP in a single deploy — no `down`, no backfill, no expand-contract staging. Any in-flight or old app instance still reading `users.name` or `legacy_status` breaks mid-rollout, and the DROP is irreversible without a backup.
+
+```sql
+ALTER TABLE "users" RENAME COLUMN "name" TO "title";
+ALTER TABLE "users" DROP COLUMN "legacy_status";
+```
+
+**Failure class (confirmed).** A destructive shape change is collapsed into one deploy with no reverse path: code still expecting the old columns breaks during the rollout window, and the drop cannot be undone. This skill prevents it by forcing expand-contract across separate deploys and a working `down` before anything destructive runs.
 
 ---
 

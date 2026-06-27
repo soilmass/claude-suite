@@ -13,7 +13,7 @@ description: >
 license: Apache-2.0
 metadata:
   version: "0.1"
-  source_of_truth: ../../CLAUDE.md
+  source_of_truth: ../../../CLAUDE.md
   changelog: >
     v0.1 — initial draft. The meta-skill that keeps every other skill's embedded facts
     honest. Runs last in the build order (presupposes the rest exist to refresh). Baseline
@@ -93,13 +93,30 @@ Refuse: "just update everything you think is outdated"; "go ahead and apply the 
 
 ---
 
-## Baseline failure (REPLACE WITH OBSERVED TRANSCRIPT)
-> Encoded failure class; replace with a real transcript.
+## Baseline failure (observed 2026-06-26)
 
-**Failure class encoded:** Nothing prompts a re-check, so the stack silently runs on stale
-facts — an outdated OWASP ordering in `security-pass`, a superseded Core Web Vital in the
-CI budget, a tool-version assumption in the scaffold — each wrong in a way no test catches
-because the code still compiles and runs.
+> Captured by running the task without this skill (a general-purpose agent, no project conventions). The encoded failure class was confirmed.
+
+**Observed run.** Asked to refresh the perishable facts, the agent rewrote the entire
+reference from training memory without consulting a single primary source (npm, owasp.org,
+web.dev), attached no dates or source URLs to any claim, and produced a full prose
+overwrite instead of a reviewable proposed-changes diff. Every "current stable" version is
+an unverified recollection, and stale-fast guidance was asserted as fact:
+
+```
+| Zod | zod | 3.24.x (4.x available, migrate when stable across deps) |
+...
+## OWASP Top 10 (2021 — still the current published list)
+```
+
+Neither claim was checked — the Zod peer-dep state is a memory snapshot, and "2021 is
+still current" was asserted without confirming whether OWASP Top 10 2025 had shipped.
+
+**Failure class (confirmed).** The whole point of a refresh is re-verifying against current,
+dated sources; an agent left to its own devices instead launders training-cutoff memory as
+"current," producing version numbers and standings that are confidently wrong and carry no
+provenance for the next refresh to re-check. This skill forces source-grounded verification
+with dates and a report-and-propose diff rather than a silent memory-based rewrite.
 
 ---
 

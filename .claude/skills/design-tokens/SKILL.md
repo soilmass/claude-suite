@@ -12,7 +12,7 @@ description: >
 license: Apache-2.0
 metadata:
   version: "0.1"
-  source_of_truth: ../../CLAUDE.md
+  source_of_truth: ../../../CLAUDE.md
   changelog: >
     v0.1 — initial draft. Tailwind v4 @theme CSS-first per CLAUDE.md. Bundles a contrast
     checker script so no palette ships unverified. Baseline section is the encoded failure
@@ -96,13 +96,22 @@ type-safety"; "hex is fine."
 
 ---
 
-## Baseline failure (REPLACE WITH OBSERVED TRANSCRIPT)
-> Encoded failure class; replace with a real transcript.
+## Baseline failure (observed 2026-06-26)
 
-**Failure class encoded:** The agent emits hardcoded hex scattered in components, or
-puts tokens in `tailwind.config`/a TS object the model later misreads and bypasses,
-builds palettes that fail WCAG contrast (light-gray-on-white body text), or produces an
-unsystematic set of competing one-off colors with no ramp.
+> Captured by running the task without this skill (a general-purpose agent, no project conventions). The encoded failure class was confirmed.
+
+**Observed run.** The agent produced a clean-looking Tailwind v4 `@theme` block — but every color was hardcoded sRGB hex, no foreground/background pair was contrast-checked, and the type and spacing scales were flat px lists rather than a ratio-based scale on an 8pt grid. No dark-mode layer and no motion tokens were emitted at all.
+
+```css
+@theme {
+  --color-primary-600: #2563eb;   /* hex, not OKLCH */
+  --color-muted: #6b7280;         /* never contrast-checked against background */
+  --spacing-xs: 4px;              /* raw px, breaks the 8pt rem grid */
+  --text-2xl: 24px;              /* flat px list, no modular ratio */
+}
+```
+
+**Failure class (confirmed).** The agent ships a palette that looks done but violates the foundation: hex instead of OKLCH, zero WCAG 2.2 AA contrast verification (CLAUDE.md rule 3 / design-tokens spec), and px-based flat scales instead of an 8pt, ratio-driven, rem system — with no dark-mode or motion tokens. This skill forces OKLCH ramps, a pre-output contrast gate, and the full `@theme` token set so the palette is verified before it ships.
 
 ---
 

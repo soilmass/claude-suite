@@ -13,7 +13,7 @@ description: >
 license: Apache-2.0
 metadata:
   version: "0.1"
-  source_of_truth: ../../CLAUDE.md
+  source_of_truth: ../../../CLAUDE.md
   changelog: >
     v0.1 — initial draft from the capability-map suite. Retargeted from Prisma to
     Drizzle/edge per DECISIONS.md. Baseline section is the encoded failure CLASS;
@@ -135,18 +135,30 @@ the UI; the UI's types must come *from* the chain, not be invented at the leaf.
 
 ---
 
-## Baseline failure (REPLACE WITH OBSERVED TRANSCRIPT)
+## Baseline failure (observed 2026-06-26)
 
-> The capability map specifies this failure class; treat it as the spec until you run the
-> task without the skill and capture a real transcript (building-skills Stage 3). A skill
-> written from an imagined baseline fixes an imagined problem.
+> Captured by running the task without this skill (a general-purpose agent, no project
+> conventions). The encoded failure class was confirmed.
 
-**Failure class encoded:** Left to itself on "build the X feature," the agent produces a
-fat tRPC procedure with logic inlined, breaks the type chain (an `any` or untyped fetch
-to make a layer compile), **omits the resource-ownership check** while keeping
-`protectedProcedure` (so it looks authorized but isn't), defines a second Zod schema on
-the form that drifts from the input schema, and renders only the success state. Each
-defect compiles and looks right in a fast review — which is why they ship.
+**Observed run.** Asked to build a create/list "projects" slice, the agent produced a
+competent-looking T3 slice — shared Zod schema, a `protectedProcedure` correctly scoped to
+`ctx.auth.userId` — but shipped the list component with only loading and success states.
+The `useQuery` error is ignored and zero projects renders a blank list; the form likewise
+never surfaces `createProject.error`. (It also drifted on conventions: `timestamp` instead
+of `timestamptz`, `serial` IDs on a public resource, hardcoded colors, raw `<input>`/`<button>`.)
+
+```tsx
+export function ProjectList() {
+  const { data, isLoading } = api.project.list.useQuery();
+  if (isLoading) return <p>Loading...</p>;        // no error, no empty
+  return <ul>{data?.map((p) => <li key={p.id}>{p.name}</li>)}</ul>;
+}
+```
+
+**Failure class (confirmed).** Left to itself, the agent ships the happy path as if it
+were the whole slice — loading + success, with error and empty silently dropped — so an
+incomplete component reads as done in a fast review. This skill's all-four-states rule
+(plus the token, timestamptz, and UUID conventions it enforces) is what closes that gap.
 
 ---
 

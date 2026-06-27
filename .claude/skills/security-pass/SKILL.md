@@ -13,7 +13,7 @@ description: >
 license: Apache-2.0
 metadata:
   version: "0.1"
-  source_of_truth: ../../CLAUDE.md
+  source_of_truth: ../../../CLAUDE.md
   changelog: >
     v0.1 — initial draft. Third done-time gate. OWASP ordering and the "#2 risk" framing
     are dated facts maintained by perishable-refresh. Baseline section is the encoded
@@ -85,13 +85,28 @@ orderings as perishable.
 
 ---
 
-## Baseline failure (REPLACE WITH OBSERVED TRANSCRIPT)
-> Encoded failure class; replace with a real transcript.
+## Baseline failure (observed 2026-06-26)
 
-**Failure class encoded:** The design-level "how would I abuse this?" pass gets skipped
-entirely (the OWASP "insecure design" gap) because nothing forces it, and header
-misconfiguration ships because framework defaults are assumed safe. The code passes
-mechanical checks and still has an abuse path no one looked for.
+> Captured by running the task without this skill (a general-purpose agent, no project conventions). The encoded failure class was confirmed.
+
+**Observed run.** Shown an artifact with a planted `updateEmail` mutation, the naive
+reviewer caught the obvious code-shaped defects — the IDOR (writing by caller-supplied
+`input.userId`), the leaked Stripe secret in a client component, the weak `z.string()`
+email, and the raw Drizzle return — and correctly called it not safe to launch. What it
+missed is what this skill forces: it never asked the abuse question. No rate-limiting on
+the email-change endpoint, and no abuse-case pass at all (enumeration, takeover-via-reset,
+flooding) — only the flaws already visible in the diff.
+
+```ts
+.where(eq(users.id, input.userId))   // caller names the row
+email: z.string()                    // no .email(), no normalize
+```
+
+**Failure class (confirmed).** A scan-the-diff review catches the defects that are
+*present* in the code but is blind to the controls that are *absent* — rate limiting, abuse
+and enumeration paths, the "how would I misuse this?" design question OWASP files under
+insecure design. Nothing in a code-shaped read forces that pass, so it ships unasked; this
+skill makes the abuse interrogation a required, explicit gate.
 
 ---
 

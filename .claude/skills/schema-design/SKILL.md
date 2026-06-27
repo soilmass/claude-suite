@@ -13,7 +13,7 @@ description: >
 license: Apache-2.0
 metadata:
   version: "0.1"
-  source_of_truth: ../../CLAUDE.md
+  source_of_truth: ../../../CLAUDE.md
   changelog: >
     v0.1 — initial draft. Retargeted from Prisma to Drizzle per DECISIONS.md: schema is
     authored as TypeScript in src/db/schema/, types root at $inferSelect/$inferInsert.
@@ -99,15 +99,33 @@ Refuse: "the relationships are obvious from the names"; "we can add timestamps l
 
 ---
 
-## Baseline failure (REPLACE WITH OBSERVED TRANSCRIPT)
+## Baseline failure (observed 2026-06-26)
 
-> Encoded failure class per the capability map; replace with a real transcript.
+> Captured by running the task without this skill (a general-purpose agent, no project
+> conventions). The encoded failure class was confirmed.
 
-**Failure class encoded:** From a prose domain description, the agent emits layout-shaped
-fields (columns that mirror a UI form rather than the domain), gets relation cardinality
-wrong (a one-to-many modeled as many-to-many or reversed), under- or over-normalizes,
-and omits timestamps, keys, or FK constraints — seeding errors into the type chain's root
-that every downstream layer inherits.
+**Observed run.** Asked to model users/projects/tasks, the naive agent produced a
+structurally tidy Drizzle schema — relations and inferred types present — but seeded
+convention defects into the type chain's root. Money was modeled as a float, timestamps
+dropped their timezone, and every foreign key went unindexed.
+
+```ts
+budget: real("budget").default(0), // total project budget in dollars  — rule 5: float money
+createdAt: timestamp("created_at").defaultNow().notNull(), // rule 6: TIMESTAMP, not timestamptz
+ownerId: integer("owner_id").notNull().references(() => users.id), // no index, no onDelete
+// serial PKs on public-facing rows (enumerable); no deleted_at decision; updated_at never auto-refreshes
+```
+
+Violations: **rule 5** (money as `real`/float), **rule 6** (`timestamp()` without
+`{ withTimezone: true }` → `TIMESTAMP` not `TIMESTAMPTZ`), plus convention misses —
+no indexes on FKs or filtered columns, `serial` IDs on public-facing rows instead of
+UUIDv7, no per-entity soft-delete call, no FK `onDelete`, and `updated_at` with no
+`$onUpdate`.
+
+**Failure class (confirmed).** A general agent optimizes for a schema that compiles and
+reads cleanly, not one that obeys the stack's data conventions — so float money, naive
+timestamps, missing indexes, and enumerable IDs slip through. These defects sit at the
+type chain's root, where every downstream tRPC, form, and component layer inherits them.
 
 ---
 

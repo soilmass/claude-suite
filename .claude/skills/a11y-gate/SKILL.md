@@ -11,7 +11,7 @@ description: >
 license: Apache-2.0
 metadata:
   version: "0.1"
-  source_of_truth: ../../CLAUDE.md
+  source_of_truth: ../../../CLAUDE.md
   changelog: >
     v0.1 — initial draft. One of the done-time gate trio. Partly wraps axe (a script) with
     judgment. Baseline section is the encoded failure class; replace with an observed
@@ -71,12 +71,33 @@ The WCAG 2.2 AA floor is set in `../../CLAUDE.md`.
 
 ---
 
-## Baseline failure (REPLACE WITH OBSERVED TRANSCRIPT)
-> Encoded failure class; replace with a real transcript.
+## Baseline failure (observed 2026-06-26)
 
-**Failure class encoded:** The agent produces visually-correct UI with broken keyboard
-navigation, missing form labels, poor focus order, and contrast failures — all invisible
-in a visual check and only surfacing when an assistive-tech user hits them.
+> Captured by running the task without this skill (a general-purpose agent, no project conventions). The encoded failure class was confirmed.
+
+**Observed run.** A naive reviewer shown a planted-flaw artifact correctly caught the
+markup-level defects axe-style scanning surfaces — the clickable `<div>` with no role,
+tabindex, or keyboard handler; the `<img>` with no alt; the unlabeled `<input>`; and the
+low-contrast hardcoded `text-[#777]` — and returned a "not accessible" verdict.
+
+```html
+<div onClick={openMenu}>Menu</div>
+<img src="/u/avatar-7f3.png" />
+<input value={name} onChange={...} />
+<span className="text-[#777]">Saved automatically</span>
+```
+
+But the review stopped at what is statically detectable: it never named the manual WCAG
+items axe cannot see — whether the `<div>`-turned-button actually sits in a logical
+**focus/tab order** and is operable by a full **keyboard flow**, or whether any alt text
+that gets added is **meaningful** rather than merely present. Catching "div should be a
+button" is not the same as verifying the resulting interaction works for an AT user.
+
+**Failure class (confirmed).** A reviewer without this skill conflates "found the
+machine-detectable defects" with "accessible," and reports a verdict that silently omits
+the human-judgment layer — reading order, end-to-end keyboard operability, meaningful alt
+and announced errors. This skill closes that gap by mandating the manual-review list every
+time, so "axe-clean" is never overstated as "accessible."
 
 ---
 
