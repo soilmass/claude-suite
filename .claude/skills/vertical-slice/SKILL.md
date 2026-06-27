@@ -66,8 +66,8 @@ validation." Each is the exact shape of the failure this skill encodes.
 - The schema does not exist yet → `schema-design` first, then return here.
 - The change is a migration of existing data/shape → `migration-author`.
 - The change is a sweep across an existing feature → `refactor`.
-- You are checking finished work → the gate trio (`rule-audit`, `a11y-gate`,
-  `security-pass`).
+- You are checking finished work → the four done-time gates (`rule-audit`, `a11y-gate`,
+  `security-pass`, `design-gate`).
 
 ---
 
@@ -127,7 +127,9 @@ the UI; the UI's types must come *from* the chain, not be invented at the leaf.
 
 - **Consumes:** `schema-design` (the model it builds on) and `design-tokens` (the styles
   it uses). Both are inputs, not things this skill produces from scratch.
-- **Feeds:** `rule-audit`, `a11y-gate`, `security-pass` — its output is what they inspect.
+- **Feeds:** `rule-audit`, `a11y-gate`, `security-pass`, `design-gate` — its output is what
+  they inspect. It also **consumes** the four craft skills (`color-system`,
+  `typography-system`, `layout-composition`, `motion-system`) via the `design-tokens` it builds on.
 - **Pairs with:** `refactor` — `vertical-slice` creates, `refactor` evolves; the two
   core daily-loop skills.
 - **Hands off:** non-trivial schema → `schema-design`; any migration the model change

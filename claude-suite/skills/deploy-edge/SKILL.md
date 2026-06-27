@@ -39,7 +39,7 @@ config rather than code.
 - **Never set an env var without choosing its scope** (Production / Preview / Development).
   An unscoped or all-scopes secret leaks production credentials into every preview URL.
 - **Never promote a build that hasn't passed the gates** (`rule-audit`, `a11y-gate`,
-  `security-pass`, CI perf budget). Preview is for vetting; production is for vetted.
+  `security-pass`, `design-gate`, CI perf budget). Preview is for vetting; production is for vetted.
 
 Refuse these rationalizations: "it's just a preview, reuse the prod keys" · "prefix it
 `NEXT_PUBLIC_` so the client can read it" · "promote now, run the migration after" · "skip
@@ -109,7 +109,7 @@ the gate, it's a tiny change."
 - **Pairs with:** `migration-deploy-coordination` (sequences a schema change against the
   promotion), `rollback-runbook` (the instant-promote-back path if production regresses).
 - **Runs against:** the deployed preview URL — `rule-audit`, `a11y-gate`, `security-pass`,
-  and the CI perf budget vet the preview before promotion.
+  `design-gate`, and the CI perf budget vet the preview before promotion.
 - **Consumes:** `env-validation` / the Zod env schema for the Rule 8 boundary check.
 
 ---

@@ -34,7 +34,7 @@ orderings as perishable.
 ---
 
 ## When to Use
-- A feature is feature-complete and headed for done/launch; part of the gate trio.
+- A feature is feature-complete and headed for done/launch; one of the four done-time gates.
 - The user asks whether something is secure or wants a threat model.
 
 ## When NOT to Use
@@ -78,7 +78,7 @@ orderings as perishable.
 ---
 
 ## Composes With
-- **Third of the done-time gate trio** with `rule-audit` and `a11y-gate`.
+- **One of the four done-time gates** with `rule-audit`, `a11y-gate`, and `design-gate`.
 - **References** the same OWASP currency `perishable-refresh` keeps fresh.
 - **Leans on** rule 2 (ownership) and rule 8 (validated boundaries) from `rule-audit`'s
   set — security-pass is the design-level complement to rule-audit's mechanical pass.

@@ -38,7 +38,7 @@ specific rather than "looked fine."
 
 - A diff, file, or feature is finished and headed for commit / PR.
 - The user asks whether generated code meets the bar.
-- Part of the done-time gate trio, alongside `a11y-gate` and `security-pass`.
+- One of the four done-time gates, alongside `a11y-gate`, `security-pass`, and `design-gate`.
 
 ## When NOT to Use
 
@@ -89,7 +89,7 @@ specific rather than "looked fine."
 ## Composes With
 
 - **Runs against:** `vertical-slice` and `refactor` output.
-- **Pairs with:** `a11y-gate` and `security-pass` as the three-part definition of done.
+- **Pairs with:** `a11y-gate`, `security-pass`, and `design-gate` as the four-part definition of done.
 - **Shares its rule source** with every generating skill: the same `CLAUDE.md` list they
   were told to obey is the list this scans for. That shared spine is why generation and
   enforcement can't drift.
@@ -132,7 +132,7 @@ then `[HIGH rule 1]`, then `[MED rule 3]`, and states: "Checked all nine rules; 
 - **A finding is genuinely ambiguous** → flag as a judgment call, don't assert a
   violation.
 - **User asks rule-audit to fix the findings** → it can propose the edits, but flag that
-  re-running the gate trio on the result is still required; a fix can introduce a new
+  re-running the four gates on the result is still required; a fix can introduce a new
   violation.
 - **A rule in CLAUDE.md changed** → audit against the current CLAUDE.md, not a remembered
   version; `perishable-refresh` keeps that list current.

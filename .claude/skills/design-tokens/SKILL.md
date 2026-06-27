@@ -5,8 +5,8 @@ description: >
   palette, a modular type scale, an 8pt spacing system, and motion tokens — with WCAG 2.2
   AA contrast verified before anything ships. Tokens are CSS-first, never a JS object or
   tailwind.config source.
-  Use when: "set up the design tokens", "generate the palette", "theme the app", "color
-  system", "set up the type scale", "spacing system".
+  Use when: "set up the design tokens", "generate the palette", "theme the app", "emit the
+  @theme tokens", "spacing tokens".
   Do NOT use for: designing individual components (that's CLAUDE.md + vertical-slice),
   or writing component-level styles for one feature (vertical-slice consumes these tokens).
 license: Apache-2.0
@@ -21,12 +21,18 @@ metadata:
 
 # design-tokens
 
-High-interrogation, because the inputs are subjective and load-bearing: brand hue, mood,
-existing brand colors, light/dark intent. Guessing these produces a confident wrong
-palette. This skill asks them up front, then generates an OKLCH/`@theme` token set and
-**will not ship a palette it hasn't contrast-checked.**
+The **orchestrating entry point** for the design foundation, and the **serializer** that
+emits it. The design decisions themselves live in four focused craft skills — `color-system`
+(the color theory), `typography-system` (the type system), `layout-composition` (grid and
+spacing), and `motion-system` (the motion language). This skill interrogates the load-bearing
+inputs, delegates each dimension to its craft skill, writes the result as Tailwind v4
+`@theme` CSS variables, and **will not ship a palette it hasn't contrast-checked.**
 
-The token format and the AA-contrast requirement are defined in `../../CLAUDE.md`.
+High-interrogation, because the inputs are subjective and load-bearing: brand hue, mood,
+existing brand colors, light/dark intent. Guessing these produces a confident wrong palette.
+
+The token format and the AA-contrast requirement are defined in `../../../CLAUDE.md`; the
+nine rules' Rule 3 (no hardcoded style values) is what these tokens exist to satisfy.
 
 ---
 
@@ -61,37 +67,53 @@ type-safety"; "hex is fine."
    - **Mood / harmony** — calm/energetic, the harmony family (analogous, complementary,
      triadic). If the user is unsure, propose one rather than stalling.
    - **Light / dark intent** — light-first, dark-first, or both.
-   These can't be guessed; everything else (the ramp math, spacing, scale ratio) you
-   derive.
+   - **Product character** — dense/data vs editorial/marketing (drives the type ratio and
+     layout density that the craft skills below decide).
+   These can't be guessed; everything downstream the craft skills derive.
 
-2. **Generate OKLCH ramps.** Build full ramps (not a few spot colors) for each role
-   (background, surface, foreground, primary, accent, destructive, muted, border) with
-   perceptually-even lightness steps. Light and dark sets if requested.
+2. **Delegate the color system to `color-system`.** It constructs the OKLCH ramps with a
+   harmony-derived accent, a chroma-by-lightness curve, the semantic role taxonomy
+   (primary/accent/success/warning/danger/info + foregrounds), a *derived* dark mode, and
+   runs `cvd-check.mjs` for colorblind/viz distinguishability. It returns OKLCH values + role
+   names. (Distinguishability is `color-system`'s job; **readability** is the contrast gate in
+   step 6, which this skill owns.)
 
-3. **Verify contrast BEFORE output.** Run `scripts/contrast.mjs` on every
+3. **Delegate the type system to `typography-system`.** It returns the scale ratio + named
+   steps, the line-height ladder, the measure, and the font-loading strategy — the values for
+   the `--text-*` and line-height vars.
+
+4. **Delegate spacing + grid to `layout-composition`.** It returns the spacing scale (8pt
+   system) with its rationale, the grid/container model, and breakpoints — the values for the
+   `--spacing-*` and `--breakpoint-*` vars.
+
+5. **Delegate motion to `motion-system`.** It returns the duration scale and easing curves
+   (with their semantics) and the reduced-motion stance — the values for `--duration-*` and
+   `--ease-*`.
+
+6. **Verify contrast BEFORE output (this skill's gate).** Run `scripts/contrast.mjs` on every
    foreground/background pairing that will co-occur (text-on-surface, text-on-primary,
-   muted-on-background, focus ring visibility). Adjust any pair under AA (4.5:1 body,
-   3:1 large/UI). Never emit an unverified palette.
+   muted-on-background, focus ring visibility), in **both** light and dark. Adjust any pair
+   under AA (4.5:1 body, 3:1 large/UI). Never emit an unverified palette.
 
-4. **Emit as Tailwind v4 `@theme`.** Write the palette, the modular type scale (a named
-   ratio — e.g. 1.25), the 8pt spacing system, and motion tokens (durations, easings) as
-   CSS variables in the global stylesheet. See `references/theme-tokens.md`.
+7. **Emit as Tailwind v4 `@theme`.** Write the palette, type scale, spacing system, and motion
+   tokens as CSS variables in the global stylesheet. See `references/theme-tokens.md`.
 
-5. **Completeness + self-report.** Confirm: every scale is a full ramp; contrast passed
-   and you can state the ratios; tokens are `@theme` CSS not JS; spacing is 8pt-based;
-   motion tokens present. Report any pair you had to nudge to pass contrast.
-
-6. **Suggest moderately.** Propose a harmony if the user was unsure; warn when a chosen
-   accent will struggle to hit AA on white and offer the adjusted value; note where a
-   dark-mode token will need a different value than a naive invert.
+8. **Completeness + self-report.** Confirm: every scale is a full ramp; contrast passed (light
+   and dark) and you can state the ratios; `cvd-check` ran on the status/viz set; tokens are
+   `@theme` CSS not JS; spacing is 8pt-based; type is ratio-based; motion tokens present. Report
+   any pair you had to nudge.
 
 ---
 
 ## Composes With
+- **Delegates to:** `color-system` (color theory + CVD), `typography-system` (type system),
+  `layout-composition` (grid + spacing), `motion-system` (motion language) — they make the
+  design decisions; this skill orchestrates and serializes them.
 - **Consumed by:** every UI-producing skill (`vertical-slice`); these tokens are the
   vocabulary.
 - **Checked by:** `rule-audit` rule 3 — hardcoded-style violations are defined as "not
-  one of these tokens."
+  one of these tokens." **Gated by** `design-gate` (system adherence) and `a11y-gate` (the
+  WCAG contrast floor) at done-time.
 - **Called by:** `t3-genesis` (initial token foundation).
 
 ---

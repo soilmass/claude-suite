@@ -116,11 +116,14 @@ exists to scan for them mechanically.
 
 ## Quality gates (definition of done)
 
-A change is done only when all three pass:
+A change is done only when all four pass:
 
 - **`rule-audit`** — the nine rules above, clean.
 - **`a11y-gate`** — axe clean + the manual WCAG 2.2 AA items checked.
 - **`security-pass`** — threat-model questions answered, headers verified, deps scanned.
+- **`design-gate`** — design-system adherence + craft: spacing and type on-scale, colors used
+  by semantic role and colorblind-safe, hierarchy legible, the four states crafted. Defers
+  contrast to `a11y-gate` and hardcoded-value detection to `rule-audit`.
 
 Plus the deterministic, non-skill gates:
 

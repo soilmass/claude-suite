@@ -13,7 +13,7 @@ metadata:
   version: "0.1"
   source_of_truth: ../../../CLAUDE.md
   changelog: >
-    v0.1 — initial draft. One of the done-time gate trio. Partly wraps axe (a script) with
+    v0.1 — initial draft. One of the four done-time gates. Partly wraps axe (a script) with
     judgment. Baseline section is the encoded failure class; replace with an observed
     transcript.
 ---
@@ -30,7 +30,7 @@ The WCAG 2.2 AA floor is set in `../../CLAUDE.md`.
 ---
 
 ## When to Use
-- Rendered UI is finished and headed for done; part of the gate trio.
+- Rendered UI is finished and headed for done; one of the four done-time gates.
 - The user asks whether something is accessible.
 
 ## When NOT to Use
@@ -64,7 +64,8 @@ The WCAG 2.2 AA floor is set in `../../CLAUDE.md`.
 ---
 
 ## Composes With
-- **Part of the done-time gate trio** with `rule-audit` and `security-pass`.
+- **One of the four done-time gates** with `rule-audit`, `security-pass`, and `design-gate`
+  (which owns design-system adherence + craft, distinct from this gate's WCAG floor).
 - **Runs against** `vertical-slice`/`refactor` rendered output. Custom interactive
   behavior should already be shadcn/Radix (which carries a11y) per `CLAUDE.md` — this
   gate catches where that discipline slipped.
