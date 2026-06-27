@@ -111,19 +111,23 @@ temporary". A missing token is a `design-tokens` task, not a bracket.
 
 ---
 
-## Baseline failure (REPLACE WITH OBSERVED TRANSCRIPT)
+## Baseline failure (observed 2026-06-26)
 
-> Encoded failure class per the suite's design; replace with a real run-without-the-skill
-> transcript before treating this as evaluated.
+> Captured by running the task without this skill (a general-purpose agent, no project conventions). The encoded failure class was confirmed.
 
-**Failure class encoded:** Asked to "style this card to match the mockup," the agent emits
-`className="bg-[#0f172a] text-[#e2e8f0] p-[18px] rounded-[10px]"` and a `style={{ marginTop:
-"7px" }}` — every value a Rule 3 violation that compiles and looks right in light mode but
-ignores the token system, so dark mode and a future rebrand silently break. It hardcodes a
-`hover:bg-[#1e293b]` instead of a semantic hover token, drops `focus-visible` rings entirely
-(failing `a11y-gate`), uses a one-off `text-[15px]` outside the modular scale, and renders only
-the populated state — no loading skeleton, empty, or error treatment (violates Rule 4). The
-output demos cleanly and passes type-check while quietly severing the component from the theme.
+**Observed run.** Asked to build a presentational card with a title, body, and primary action button, the agent reached for the stock Tailwind palette and scale — literal `gray`/`blue` colors, a hand-picked `shadow-sm`, and ad-hoc spacing/radius steps — instead of resolving anything to the project's `@theme` tokens. It also hand-rolled the `<button>` rather than composing the shadcn/ui primitive, duplicated the primary color in the focus ring, and locked the colors to a light palette with no theme variants.
+
+```tsx
+<div className="max-w-sm rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
+  <h3 className="text-lg font-semibold text-gray-900">{title}</h3>
+  <p className="mt-2 text-sm leading-6 text-gray-600">{body}</p>
+  <button className="mt-4 inline-flex items-center rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
+    {actionLabel}
+  </button>
+</div>
+```
+
+**Failure class (confirmed).** This is the Rule 3 break the skill exists to prevent: raw palette/scale utilities (`bg-white`, `text-gray-900`, `bg-blue-600`, `shadow-sm`) and ad-hoc spacing/radius bypass the semantic `@theme` token layer, so dark mode and a rebrand silently break and the focus ring drifts from the primary color. It compiles and looks right in light mode, which is exactly why the severed token chain — plus the hand-built button instead of the shadcn/ui primitive — survives a fast review.
 
 ---
 

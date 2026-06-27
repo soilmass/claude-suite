@@ -88,24 +88,23 @@ connection model stateless. It does not model tables (schema-design) or scaffold
 - **Hands off:** migration-author (applying and evolving migrations through the config connection).
 - **Runs against:** rule-audit (Rules 1, 8, 9 over the wiring you produce).
 
-## Baseline failure (REPLACE WITH OBSERVED TRANSCRIPT)
+## Baseline failure (observed 2026-06-26)
 
-> This is the encoded failure *class*, not a captured transcript. Replace it with a real
-> transcript the first time you watch this fail.
+> Captured by running the task without this skill (a general-purpose agent, no project conventions). The encoded failure class was confirmed.
 
-**Failure class encoded:** without this skill, generated DB wiring for an edge app typically:
+**Observed run.** Asked to wire the edge Drizzle client, the naive agent did reach for the right driver family (`neon-http`, stateless fetch) — but read the connection secret raw and silently picked one driver with no decision record. The connection string crosses the boundary on a non-null assertion, so a missing or malformed URL fails opaquely at runtime instead of at boot:
 
-- Imports `import { Pool } from "pg"` / `import postgres from "postgres"` and builds a
-  module-level pool that works in `next dev` (Node) and crashes at edge deploy with a
-  `node:net`/`dns` resolution error.
-- Reads `process.env.DATABASE_URL!` directly with a non-null assertion, no Zod parse, so a
-  missing or malformed URL becomes a runtime crash instead of a boundary error (violates Rule 8).
-- Uses Neon's WebSocket `Pool` (connection-holding) when the stateless `neon()` HTTP client
-  was the edge-correct choice.
-- Writes `await db.transaction(async (tx) => { ... })` interactive transactions that the HTTP
-  driver cannot honor, silently breaking atomicity.
-- Forgets `export const runtime = "edge"`, so the route quietly falls back to Node and the bug
-  hides until traffic shifts.
+```ts
+// src/db/index.ts
+import { neon } from "@neondatabase/serverless";
+import { drizzle } from "drizzle-orm/neon-http";
+import * as schema from "./schema";
+
+const sql = neon(process.env.DATABASE_URL!); // raw env read, no Zod parse
+export const db = drizzle(sql, { schema });
+```
+
+**Failure class (confirmed).** Generated edge DB wiring crosses the env boundary unvalidated — `process.env.DATABASE_URL!` instead of a Zod-parsed server-env module — which violates Rule 8 and degrades Rule 9 (no `server-only` guard keeps the connection string out of the client graph). It also hardcodes a single driver without recording the Neon-vs-Turso/libSQL call in `DECISIONS.md` and never surfaces the HTTP driver's no-interactive-transaction limit, so the riskiest constraints are picked silently rather than deliberately.
 
 ## Examples
 

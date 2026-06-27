@@ -102,20 +102,22 @@ ownership check (Rule 2).
 
 ---
 
-## Baseline failure (REPLACE WITH OBSERVED TRANSCRIPT)
+## Baseline failure (observed 2026-06-26)
 
-> This is the encoded failure class, not a captured transcript. Replace it after running the
-> task without the skill and recording what the agent actually does.
+> Captured by running the task without this skill (a general-purpose agent, no project conventions). The encoded failure class was confirmed.
 
-**Failure class encoded:** Asked to "review my code," the agent re-runs the nine-rule checks
-(duplicating `rule-audit`) and otherwise emits praise — "looks clean, well structured" — with no
-actionable findings. It misses that the new tRPC procedure inlines 40 lines of pricing logic that
-belongs in a plain function (spine: thin procedures); that `getData`/`data2`/`handleIt` are
-uninformative; that two routers copy-paste the same cursor-pagination block instead of sharing a
-helper; that a 5-deep nested `if/else` in the edge handler should be early returns; and that a
-commented-out old implementation was left in the file. When it does flag something, it says "this
-could be cleaner" without a file:line or a concrete fix, and gives no severity, so the author
-can't tell a blocker from a nit.
+**Observed run.** Shown a planted-flaw `createOrder` tRPC mutation, the naive reviewer caught the local, well-known smells — `z.any()` input, the per-item N+1 `findFirst` loop, the unguarded null deref, the `unused = 42` dead variable, opaque names, the redundant two-pass total, and the nested `if` pyramid — and correctly voted "Request changes." But it framed the verdict around the crash and the unvalidated input, never naming the two project-specific failures: that business logic is **inlined in the procedure** at all (spine: procedures stay thin, logic lives in a plain function) and that the total is summed as a **float** (Rule 5 — money is integer minor units), which it instead softened to "if price is a float this accumulates rounding error."
+
+```ts
+for (const i of data) {
+  const p = await ctx.db.query.products.findFirst({ where: eq(products.id, i.id) });
+  if (i) { if (i.qty) { if (i.qty > 0) { tmp.push(p.price * i.qty); } } }
+}
+let t = 0; for (const x of tmp) t += x;   // float total; no order row ever inserted
+return { total: t };
+```
+
+**Failure class (confirmed).** A general reviewer reliably finds the textbook defects (N+1, null deref, dead code) but reads the diff in isolation, with no model of the decided stack — so it misses layering violations (logic that belongs in a plain function, not the procedure) and treats stack invariants like float-money as conditional style advice rather than hard rule breaks. This skill closes that gap by judging the change against the spine and the nine rules, and by triaging each finding to a definite severity instead of a hedge.
 
 ---
 

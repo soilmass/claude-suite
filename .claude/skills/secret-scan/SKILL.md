@@ -85,18 +85,31 @@ leaks; `env-validation` builds the boundary that stops new ones.
   judgment pass that also checks headers, abuse cases, and the dependency scan.
 - **Hands off:** `rule-audit` covers Rule 9 at diff level; escalate a confirmed leak here.
 
-## Baseline failure (REPLACE WITH OBSERVED TRANSCRIPT)
-> Encoded failure class, not a captured transcript; replace once observed in the wild.
+## Baseline failure (observed 2026-06-26)
 
-**Failure class encoded:** Asked "scan the repo before we go public," the agent runs a shallow
-`grep -i password` over `src/` and declares it clean. Concrete defects that ship: (1) misses
-`NEXT_PUBLIC_STRIPE_SECRET_KEY` because it never checked that a `NEXT_PUBLIC_` value is a
-secret (Rule 9) — the key is already in every browser bundle; (2) never scans git history, so
-a `.env` committed three weeks ago and "deleted" stays fully recoverable; (3) misses
-`import { env } from "@/env"; ... env.CLERK_SECRET_KEY` used inside a `"use client"` component,
-shipping the server secret to the client; (4) flags `.env.example` placeholders and a `pk_test`
-publishable key as leaks, drowning the real hit in noise; (5) suggests "delete the line" without
-rotating the credential, leaving the already-exposed key live.
+> Captured by running the task without this skill (a general-purpose agent, no project conventions). The encoded failure class was confirmed.
+
+**Observed run.** Shown a planted-flaw artifact and asked to review it for secret exposure, the
+naive reviewer fixated on the obvious server-side usage and missed the real leak. It correctly
+flagged `lib/stripe.ts` as fine (the `STRIPE_SECRET_KEY` stays server-side) and even raised the
+real `Banner.tsx` leak — but only after burning attention on the safe file, and its scan logic
+keyed on the wrong heuristic (grepping for `NEXT_PUBLIC_` / obvious server usage rather than
+"server secret pulled into a client component"). The actual blocker was a `"use client"`
+component reading a server-only env var and rendering it into the DOM:
+
+```tsx
+"use client";
+export function Banner() {
+  const url = readServerEnv(); // DATABASE_URL
+  return <div data-db={url} />; // ships the DB credential to the browser
+}
+```
+
+**Failure class (confirmed).** A naive secret scan greps for the `NEXT_PUBLIC_` prefix and
+checks that obvious server modules keep their keys server-side, then calls it clean — and
+entirely misses a server-only secret (DB URL, Clerk secret) imported into a `"use client"`
+component, where it is inlined into the browser bundle or rendered into the served DOM. The leak
+shape that matters is not the prefix; it is the server-to-client boundary crossing.
 
 ## Examples
 

@@ -107,19 +107,36 @@ our own form, it's already valid"; "I'll add loading.tsx later."
 
 ---
 
-## Baseline failure (REPLACE WITH OBSERVED TRANSCRIPT)
+## Baseline failure (observed 2026-06-26)
 
-> Encoded failure class per the suite's design; replace with a real run-without-the-skill
-> transcript before treating this as evaluated.
+> Captured by running the task without this skill (a general-purpose agent, no project conventions). The encoded failure class was confirmed.
 
-**Failure class encoded:** Asked to "set up the route for X," the agent slaps `"use client"`
-at the top of `layout.tsx` so a `useState` somewhere works, dragging the whole subtree off
-RSC and the edge data path; reads `process.env.DATABASE_URL` (or a Clerk secret) inside a
-component that is now a Client Component, shipping it to the browser (Rule 9); writes a
-`route.ts` that does `await req.json()` and uses the body unparsed (Rule 8); omits
-`loading.tsx`, `error.tsx`, and `not-found.tsx`, so the segment has only a happy path
-(Rule 4); and reaches for `getServerSideProps`/`_app` muscle memory from the Pages Router.
-It renders in dev and looks done.
+**Observed run.** Asked for a Server-Component dashboard list + detail page with
+`loading`/`error`/`not-found` neighbors, the agent got the file conventions right but reached
+straight into Drizzle from the page, bypassing tRPC entirely and skipping the
+validate/authorize layer the stack mandates. The list query fetched every project row with no
+owner scope, and the detail query filtered by `id` alone — `userId` was fetched and then never
+used, so any logged-in user can read any project. The route param went into the query unparsed,
+and styles used raw hex.
+
+```tsx
+// src/app/dashboard/page.tsx (Server Component)
+const { userId } = await auth();
+const rows = await db.select().from(projects); // fetch list — userId never used
+
+// src/app/dashboard/[id]/page.tsx
+const { id } = await params;                    // raw param, no Zod parse
+const [project] = await db.select().from(projects)
+  .where(eq(projects.id, id)).limit(1);         // filtered by id only, not owner
+// ...
+<li className="border rounded p-3 hover:bg-[#f5f5f5]">  // raw hex
+```
+
+**Failure class (confirmed).** Getting the App Router file shape right does not make a segment
+correct: querying `db` directly from a Server Component skips tRPC's validation and ownership
+layer, producing an unscoped read (Rule 2), an unvalidated route param (Rule 8), and hardcoded
+styles (Rule 3). This skill keeps data access behind the tRPC boundary and forces the
+ownership/validation checks the structural files alone can't.
 
 ---
 

@@ -90,25 +90,21 @@ in depth, where `rule-audit` would only flag the loud cases in passing.
 - **Hands off:** `refactor` when a reconnect is a sweeping change, `migration-author` when a
   break traces to a wrong column type.
 
-## Baseline failure (REPLACE WITH OBSERVED TRANSCRIPT)
+## Baseline failure (observed 2026-06-26)
 
-> This is the encoded failure *class*, not a captured transcript. Replace it with a real
-> transcript once one is observed.
+> Captured by running the task without this skill (a general-purpose agent, no project conventions). The encoded failure class was confirmed.
 
-**Failure class encoded:** Without this skill, a slice that "compiles cleanly" routinely ships
-with a severed chain that only fails at runtime:
+**Observed run.** A naive reviewer shown a planted-flaw slice caught the loud, surface-level defects — the `u.naem` typo, the missing loading/undefined handling on `useQuery().data`, even that `as any` is "why the typo wasn't caught" — and returned a confident "Request changes." But it framed the verdict around the *typo and the missing loading state* as the headline failures, treating the casts as contributing factors rather than the root. It missed that the chain has **no Drizzle root at all** and that every cast is a deliberate laundering point that compiles clean:
 
-- a client component declaring its own `interface Product { … }` instead of using
-  `RouterOutputs["product"]["byId"]`, so adding a Drizzle column never reaches the UI type and
-  a `undefined` field renders silently.
-- a webhook handler doing `const body = JSON.parse(await req.text())` then reading
-  `body.amount`, laundering `any` straight into business logic with no Zod parse (Rules 1, 8).
-- an `as ProductCreateInput` on a form value to "make TypeScript quiet" that hides a field the
-  schema renamed, so the mutation sends a stale shape.
-- a tRPC procedure returning a hand-shaped object literal instead of the inferred row, so the
-  output type and the actual data quietly diverge.
-- a non-null `!` on `data` from a `useQuery` that erases the loading/undefined case the type
-  was protecting (also a Rule 4 tell).
+```ts
+const u = api.getUser.useQuery().data as any   // tRPC inference thrown away here
+const data: any = await res.json()             // network boundary severed, unvalidated
+return rows as User[]                           // unchecked cast over raw db.execute()
+```
+
+It flagged `data: any` and `rows as User[]` as generic "any/cast" smells, but did not name them as the specific hops where inference is severed, nor that `return rows as User[]` *asserts* a shape the DB never guaranteed (inference would have been `unknown`), nor that the chain's root is supposed to be `users.$inferSelect`, not a hand-asserted `User[]`.
+
+**Failure class (confirmed).** A general reviewer triages by what looks scariest at runtime (a typo, an unhandled `undefined`) and treats the `any`/`as` escape hatches as secondary code smell. The real failure class is the inverse: the casts are the *cause* — each one silently severs one hop of the Drizzle → Zod → tRPC → component chain so a wrong shape compiles and ships. Because it all type-checks, the trap is invisible to a reviewer who isn't walking each hop back to inference and asking "is this derived from the upstream type, or asserted parallel to it?"
 
 ## Examples
 

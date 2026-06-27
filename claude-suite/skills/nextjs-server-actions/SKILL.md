@@ -134,19 +134,26 @@ only renders for the owner, so no ownership check"; "the page will refresh anywa
 
 ---
 
-## Baseline failure (REPLACE WITH OBSERVED TRANSCRIPT)
+## Baseline failure (observed 2026-06-26)
 
-> This is the encoded failure class, not a captured transcript. Replace it after running
-> "add a server action for X" without this skill and recording what actually ships.
+> Captured by running the task without this skill (a general-purpose agent, no project conventions). The encoded failure class was confirmed.
 
-**Failure class encoded:** Asked for "a server action to update the profile," the agent
-reaches for a Server Action by reflex (never weighing tRPC), reads `formData.get('email')`
-and passes the raw `string | File` straight into a Drizzle `update` with **no Zod parse**
-(rule 8), checks only that a user is signed in but never that the edited row belongs to
-that user — **no ownership check** (rule 2), forgets `revalidatePath` so the UI shows the
-old value after a successful write, and writes a `void` action that throws on bad input,
-giving the form no error branch and breaking it entirely when JS is off (rule 4). Every
-line compiles; the function "works" in the happy demo.
+**Observed run.** Asked to build a todo Server Action, the agent reached for `<form action={createTodo}>` by reflex (never weighing tRPC) and read the input with a raw cast — no Zod parse and no ownership check — then `throw`n a bare `Error` on bad input instead of returning a typed error branch. The form bound directly to the action and `revalidatePath('/todos')` did refresh the list, but the boundary, auth, and error-state handling were all skipped.
+
+```ts
+export async function createTodo(formData: FormData) {
+  const title = formData.get("title") as string;       // rule 1 + rule 8: cast lies, no Zod parse
+  if (!title || title.trim().length === 0) {
+    throw new Error("Title is required");               // rule 4: throws past boundary, no field-error branch
+  }
+  await db.insert(todos).values({ title });             // rule 2: no auth()/ownership, no userId column
+  revalidatePath("/todos");
+}
+```
+
+(The accompanying schema used `timestamp(...)` not `timestamptz` (rule 6); the form hardcoded `bg-blue-600` and inline `style={{ minWidth }}` (rule 3); the page rendered success only, no loading/empty/error (rule 4).)
+
+**Failure class (confirmed).** A Server Action's `FormData` types as `string | File`, so an unchecked `as string` cast satisfies the compiler while leaving the boundary unvalidated (rules 1, 8) and the `'use server'` endpoint unauthorized (rule 2). Throwing past the boundary instead of returning a discriminated error state breaks progressive enhancement and the form's error rendering (rule 4). Every line compiles and the happy demo works, which is exactly why these slip past review.
 
 ---
 

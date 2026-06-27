@@ -110,22 +110,26 @@ features land"; "I'll check ownership centrally in context to save repetition."
   the context's client is typed against).
 - **Hands off:** `rule-audit` (verify rules 1, 8, 9 on the wiring), `security-pass`.
 
-## Baseline failure (REPLACE WITH OBSERVED TRANSCRIPT)
+## Baseline failure (observed 2026-06-26)
 
-> This is the encoded failure *class*, not a captured transcript. Replace with a real one
-> when observed.
+> Captured by running the task without this skill (a general-purpose agent, no project conventions). The encoded failure class was confirmed.
 
-**Failure class encoded:** Without this skill, generated tRPC wiring typically ships:
-- A context that imports a Node `pg.Pool` / `postgres-js` TCP client — works in `next dev`,
-  throws or hangs once deployed to the edge runtime.
-- The client calling `createTRPCClient<typeof appRouter>` with a **value** import of
-  `appRouter`, dragging server code (and any secret it touches) into the browser bundle (rule 9).
-- `AppRouter` never exported as a type, or exported as `any`, breaking inference so every
-  client call returns `unknown`/`any` (rule 1).
-- `initTRPC` called per-router instead of once, so transformer/errorFormatter config diverges
-  and Zod field errors never reach forms (rule 8).
-- Deeply nested routers (`router.user.profile.settings`) instead of flat domain namespaces,
-  making the surface hard to merge and audit.
+**Observed run.** The agent produced clean, idiomatic T3-style wiring — a root router, a per-request context carrying Clerk `auth()` and the Drizzle `db`, and a fetch-adapter handler on the edge — and stopped there. `protectedProcedure` enforces only authentication, and the context hands procedures `auth.userId` with no shared pattern for asserting a row belongs to that user; the env var feeding the db is read with a bare `!` rather than Zod-parsed (rule 8). The auth state is also typed loosely as the Clerk session, so nothing anchors the `ctx` type to Drizzle inference (rule 1).
+
+```ts
+const enforceAuth = t.middleware(({ ctx, next }) => {
+  if (!ctx.auth.userId) {
+    throw new TRPCError({ code: "UNAUTHORIZED" });
+  }
+  return next({ ctx: { ...ctx, auth: { ...ctx.auth, userId: ctx.auth.userId } } });
+});
+export const protectedProcedure = t.procedure.use(enforceAuth);
+
+const sql = neon(process.env.DATABASE_URL!); // rule 8: unvalidated boundary
+export const db = drizzle(sql, { schema });
+```
+
+**Failure class (confirmed).** Wiring that authenticates but offers no ownership scaffold leaves rule 2 — the #1 vulnerability class — structurally unsupported, so every downstream procedure tends to stop at the auth check. Reading `DATABASE_URL` with `!` skips the validated boundary (rule 8), and a loosely typed `ctx.auth` breaks the type chain at its root (rule 1). The context shape this skill nails down is exactly what makes those checks the default rather than an afterthought.
 
 ## Examples
 

@@ -91,17 +91,41 @@ when to set `runtime = 'edge'` versus falling back to `'nodejs'`.
 
 ---
 
-## Baseline failure (REPLACE WITH OBSERVED TRANSCRIPT)
-> Encoded failure class, not a captured transcript; replace once observed in the wild.
+## Baseline failure (observed 2026-06-26)
 
-**Failure class encoded:** Asked to add auth-token signing or password hashing, the agent
-reaches for `jsonwebtoken` and `bcrypt`, which build fine on the default Node runtime locally.
-Concrete defects that ship: (1) the route is marked `runtime = 'edge'` but imports
-`node:crypto`, dying at deploy with "A Node.js API is used which is not supported in the Edge
-Runtime"; (2) `import fs from 'fs'` to read a template, unresolvable at the edge; (3) the TCP
-`pg` driver opens a socket the edge isolate can't grant; (4) middleware quietly pulls in a
-Node-only logger, so the whole middleware layer fails; (5) the whole app is flipped to
-`nodejs` to "make it work," silently abandoning the edge fork with no `DECISIONS.md` entry.
+> Captured by running the task without this skill (a general-purpose agent, no project
+> conventions). The encoded failure class was confirmed.
+
+**Observed run.** Asked for an `export const runtime = "edge"` route that SHA-256-hashes a
+posted token and checks it against an allowlist, the agent produced a handler that imports
+`node:crypto`, `node:fs`, and `node:path` — all absent from the edge isolate. It used
+`crypto.createHash("sha256")` (Node-only; the edge offers only WebCrypto) and read the
+allowlist with `fs.readFileSync(path.join(process.cwd(), ...))` on every request, so despite
+the `runtime = "edge"` declaration the route cannot build or run at the edge:
+
+```ts
+export const runtime = "edge";
+
+export async function POST(req: Request) {
+  const { token } = await req.json();                       // untyped any across the boundary
+  const hash = crypto.createHash("sha256")                  // node:crypto — not on edge
+    .update(token).digest("hex");
+  const configPath = path.join(process.cwd(), "config", "tokens.json");
+  const config = JSON.parse(fs.readFileSync(configPath, "utf8")); // node:fs/path — not on edge
+  return NextResponse.json({ valid: !!config.allowedHashes?.includes(hash) });
+}
+```
+
+It compounded the runtime breakage with rule violations: `req.json()` and `JSON.parse` feed
+untyped `any` straight into the hasher with no Zod parse of the body (**Rules 1 and 8**), and
+there is no error handling for malformed JSON, a missing file, or a non-string token.
+
+**Failure class (confirmed).** The agent treats the edge declaration as cosmetic and writes
+ordinary Node code — `node:crypto`, `node:fs`/`node:path`, `process.cwd()` — that builds
+locally on the default Node runtime but dies at the edge boundary. The edge-correct path is
+WebCrypto (`await crypto.subtle.digest('SHA-256', new TextEncoder().encode(token))`) plus a
+static config import, with the request body Zod-parsed before use. This skill exists to map
+each Node-only API to its edge-safe replacement before it ships.
 
 ---
 

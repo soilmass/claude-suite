@@ -105,22 +105,24 @@ root) and Rule 1 (the result type stays inferred, not cast).
 
 ---
 
-## Baseline failure (REPLACE WITH OBSERVED TRANSCRIPT)
+## Baseline failure (observed 2026-06-26)
 
-> This is the encoded failure class, not a captured transcript. Replace it after running
-> the task without the skill and recording what the agent actually does.
+> Captured by running the task without this skill (a general-purpose agent, no project conventions). The encoded failure class was confirmed.
 
-**Failure class encoded:** Asked "this orders page is slow, find why," the agent skims the
-router, declares the SQL "looks fine," and misses the actual N+1s because each one compiles
-and reads naturally. Specific defects that survive: (1) `orders.map(async o => ({ ...o,
-items: await db.query.items.findMany({ where: eq(items.orderId, o.id) }) }))` — one query
-per order, unflagged; (2) the same loop wrapped in `Promise.all`, dismissed as "it's
-parallel so it's fine" when it is still N billed edge round trips; (3) a `getCustomer(id)`
-helper called inside a `.map()` that itself queries — the hidden N+1 the grep-only approach
-never sees; (4) a proposed "fix" that fetches every customer and filters in JS, trading the
-loop for a Rule 2 ownership leak; (5) no severity ranking, so a loop over a 2-row constant
-gets the same alarm as a loop over 10k user rows. Each passes on the dev seed and degrades
-linearly with real data.
+**Observed run.** A naive reviewer (no skill) was shown a planted-flaw orders-list artifact whose hot path fanned out per-row queries:
+
+```ts
+const orders = await db.select().from(ordersTable);
+return Promise.all(orders.map(async (o) => {
+  const customer = await db.query.customers.findFirst({ where: eq(customers.id, o.customerId) });
+  const lines = await db.select().from(orderLines).where(eq(orderLines.orderId, o.id));
+  return { ...o, customer, lines };
+}));
+```
+
+The reviewer caught a lot: it named the N+1 (a customer query plus a lines select per order), flagged the unbounded fetch, the missing owner scope (Rule 2), the `Promise.all` fan-out exhausting the pool, the redundant re-fetch of shared customers, and the unhandled `undefined` customer. Its verdict was "Needs changes." What it did NOT do was diagnose with prescriptive precision: it folded the N+1 into a flat six-item list of co-equal concerns with no edge blast-radius ranking, never quantified the defect as O(2N) round trips from *two distinct per-row families* in one loop, and offered only a hand-wavy "collapse into a single relational query or a join" without the shape→fix mapping (relational `with` for parent+children, the `inArray` batch for the inexpressible case) or the note that `Promise.all` makes the queries concurrent, not singular.
+
+**Failure class (confirmed).** A capable generalist can *spot* an N+1 but stops at naming it, burying it in an unranked pile and prescribing a vague "use one query." This skill converts detection into a ranked, edge-cost-weighted report that separates each N+1 family, quantifies the round-trip blast radius, and routes each hit to the exact single-round-trip rewrite while preserving Rules 1 and 2.
 
 ---
 

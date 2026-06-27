@@ -119,19 +119,26 @@ work for now"; "the toast already shows the error"; "I'll just fetch the check d
 
 ---
 
-## Baseline failure (REPLACE WITH OBSERVED TRANSCRIPT)
+## Baseline failure (observed 2026-06-26)
 
-> This is the encoded failure *class*, not a captured transcript. Replace it once you run
-> the task without the skill and record what actually shipped.
+> Captured by running the task without this skill (a general-purpose agent, no project conventions). The encoded failure class was confirmed.
 
-**Failure class encoded:** Asked for an "advanced" form, the agent re-declares a Zod
-schema inline on the form (a second copy that drifts from the tRPC input), keys the
-`useFieldArray` rows by array index (so removing a middle row corrupts the inputs below
-it), leaves array `defaultValues` as `undefined` and reaches for `any` when the types
-complain, writes async uniqueness validation as a bare `fetch` with no debounce and no
-race guard (so a stale response overwrites a fresh one), and handles the mutation error
-with a toast only — the offending field never lights up and a non-field server error
-vanishes entirely. Each compiles and demos fine on the happy path.
+**Observed run.** Asked to wire a dynamic invoice form (line items via `useFieldArray`, shared Zod resolver, tRPC mutation with server errors mapped back to fields), the naive run did get the shared-schema and `field.id` keying right — but it carried money as JS floats in dollars and invented a brittle untyped server-error channel. The mutation overloaded `err.message` with a `"field:message"` string convention and the client `.split(":")` it back apart, instead of reading structured `zodError.fieldErrors` off the typed `TRPCClientError`.
+
+```ts
+// server: throws an ad-hoc string instead of a structured field error
+throw new TRPCError({ code: "BAD_REQUEST", message: "customer:This customer is blocked" });
+
+// client onError: parses the message string back into a field name
+const [field, ...rest] = err.message.split(":");
+if (rest.length) setError(field as keyof InvoiceInput, { message: rest.join(":") });
+
+// money as floats in dollars
+unitPrice: z.coerce.number().positive("Must be > 0"), // dollars
+const total = input.items.reduce((sum, i) => sum + i.quantity * i.unitPrice, 0);
+```
+
+**Failure class (confirmed).** Generated "advanced" forms reach the demo with the server-error boundary untyped and stringly-typed — a `"field:message"` convention that bypasses the typed `zodError` channel (rule 1, rule 8) and silently breaks the moment a message contains a colon. Alongside it, money rides as floats (rule 5) and the success path is an `alert()` rather than a real four-state treatment (rule 4). This skill forces the typed `TRPCClientError` → `setError`/`root.serverError` mapping that the naive run improvises around.
 
 ---
 

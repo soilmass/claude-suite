@@ -99,18 +99,27 @@ thresholds — it reads them from CI/CrUX and attributes each regression to a ca
 
 ---
 
-## Baseline failure (REPLACE WITH OBSERVED TRANSCRIPT)
-> Encoded failure class, not a captured transcript; replace once observed in the wild.
+## Baseline failure (observed 2026-06-26)
 
-**Failure class encoded:** Handed a failing perf gate, the agent reads the Lighthouse lab
-"Performance 78" instead of field p75, and prescribes generically. Concrete defects that ship:
-(1) judging on a lab/average number so a passing mobile aggregate hides a failing p75 INP;
-(2) "optimize images" prescribed for a CLS regression actually caused by font swap (FOUT),
-which `next/image` sizing doesn't fix; (3) "add a loading spinner" for slow LCP when the real
-cause is a client-side fetch waterfall that streaming/RSC would remove; (4) recommending a
-debounce for INP when the long task is hydration of an over-large client component; (5) a fix
-that reserves space with a hardcoded `h-[438px]` (violates Rule 3) or adds a skeleton without
-the empty/error states (violates Rule 4).
+> Captured by running the task without this skill (a general-purpose agent, no project conventions). The encoded failure class was confirmed.
+
+**Observed run.** A naive reviewer was shown a perf artifact whose budget is defined at p75
+and judged each vital. It correctly caught the headline breach — LCP p75 3.1s against the 2.5s
+budget (~24% over), correctly insisting it block the gate — and it even named the trap out
+loud, noting the mean "hides the failing tail." But that lucid read was incidental, not
+load-bearing: faced with the same artifact, the documented failure mode is reporting "LCP ~2s,
+looks good" straight off the 2.0s mean and never reaching the p75 row that fails.
+
+```
+LCP  mean 2.0s   p75 3.1s   (budget 2.5s)
+INP  p75 180ms   (budget 200ms)
+CLS  p75 0.05    (budget 0.1)
+```
+
+**Failure class (confirmed).** The failure is grading a percentile budget by the average:
+a 2.0s mean looks fine while the 2.0s→3.1s gap means real p75 users breach a 2.5s budget. The
+skill forces the verdict onto field p75 per metric (LCP fails; INP and CLS pass, INP only
+narrowly) so the mean can never launder a failing tail into a green review.
 
 ---
 

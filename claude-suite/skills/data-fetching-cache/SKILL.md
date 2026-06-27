@@ -114,19 +114,37 @@ revalidation later"; "fetching it client-side is simpler and it's just the user'
 
 ---
 
-## Baseline failure (REPLACE WITH OBSERVED TRANSCRIPT)
+## Baseline failure (observed 2026-06-26)
 
-> Encoded failure class per the suite's design; replace with a real run-without-the-skill
-> transcript before treating this as evaluated.
+> Captured by running the task without this skill (a general-purpose agent, no project conventions). The encoded failure class was confirmed.
 
-**Failure class encoded:** Asked to "make the dashboard load fast," the agent caches a
-per-user query under a single route-level static cache (or a bare `tags: ["notes"]`), so the
-first user's data is served to every subsequent user — Rule 2 defeated at the cache layer. It
-adds `cache: "force-cache"` to an authed read and never wires `revalidateTag`, so after a user
-edits a note the list shows the old value until the TTL expires. It moves a fetch to a Client
-Component "so it refreshes," dragging the DB read and an env secret toward the client (Rule 9)
-and off the edge server path. And it picks a `revalidate: 3600` out of the air with no record
-of why. Every path renders correctly in a single-user dev session and looks done.
+**Observed run.** Asked to build a products list that stays fresh after a create, the agent
+reached for the default tRPC + React Query path: a `"use client"` page that fetches the list
+client-side and re-fetches via `utils.product.list.invalidate()` in the mutation's `onSuccess`.
+The entire read happens in the browser, so there is no Server Component data path, no Next.js
+full-route cache, and no `revalidateTag`/`revalidatePath` — freshness is purely client cache
+invalidation. The `protectedProcedure` list query also never filters by `ctx.auth.userId`.
+
+```ts
+list: protectedProcedure.query(async ({ ctx }) => {
+  return ctx.db.select().from(products).orderBy(desc(products.createdAt)); // no userId filter
+}),
+```
+
+```tsx
+"use client";
+const { data: products } = api.product.list.useQuery();          // client fetch, no server cache
+const create = api.product.create.useMutation({
+  onSuccess: async () => { await utils.product.list.invalidate(); }, // client-only revalidation
+});
+return <ul>{products?.map((p) => <li key={p.id}>${p.price.toFixed(2)}</li>)}</ul>; // success-only
+```
+
+**Failure class (confirmed).** Defaulting to client-side fetch-and-invalidate skips the server
+data path entirely, forfeiting the App Router cache and any server-side revalidation while
+keeping the DB read in the browser. The same shortcut routinely drags ownership scoping (Rule
+2), the four-state contract (Rule 4), and float money (Rule 5) along with it — the read looks
+reactive in a single-user dev session and ships stale, over-broad, and happy-path-only.
 
 ---
 

@@ -91,20 +91,34 @@ is faster than wiring the inferred type".
   change first; to `vertical-slice` once data exists to build against.
 - **Runs against:** a dev/preview database only — never the production connection.
 
-## Baseline failure (REPLACE WITH OBSERVED TRANSCRIPT)
+## Baseline failure (observed 2026-06-26)
 
-> This is the encoded failure *class* this skill prevents, not a captured transcript. Replace
-> it with a real before/after once one is observed.
+> Captured by running the task without this skill (a general-purpose agent, no project conventions). The encoded failure class was confirmed.
 
-**Failure class encoded:** Without this skill, a generated seed typically ships:
+**Observed run.** Asked to seed users and posts, the naive agent redefined the `users` and `posts`
+tables *inline* in `seed.ts` (rather than importing from `src/db/schema`), reached for the
+node-postgres `Pool` (a long-lived TCP driver, not the stack's edge-compatible serverless driver),
+and made re-running "safe" by wiping everything first — a destructive delete-all with no env guard
+and no transaction wrapping the delete/insert sequence.
 
-- Bare `db.insert(...)` over hardcoded object literals — running `db:seed` twice doubles every
-  row, or crashes on a unique constraint.
-- Row literals with no schema type, so a later column rename leaves the seed silently inserting
-  stale shapes until a runtime error (rule 1 broken).
-- `price: 19.99` floats and `createdAt: new Date("2026-01-01")` local-time strings (rules 5, 6).
-- A per-parent `await db.insert(child)` inside a `for` loop over inserted parents (rule 7).
-- No env guard, so the same script can truncate whatever `DATABASE_URL` happens to point at.
+```ts
+const pool = new Pool({ connectionString: process.env.DATABASE_URL });
+const db = drizzle(pool);
+// wipe so re-running gives a clean slate
+await db.delete(posts);
+await db.delete(users);
+await db.insert(users).values([
+  { clerkId: "user_seed_alice", name: "Alice", email: "alice@example.com" },
+  // ...
+]).returning();
+```
+
+**Failure class (confirmed).** Idempotency was faked with truncation instead of an upsert on a
+natural key (`email`/`clerkId`), so the script destroys real data if ever pointed at a shared or
+staging DB — and with no env guard nothing stops that. The inline table redefinition breaks the
+single-source type chain (rule 1), the fixtures are never Zod-validated (rule 8), and the
+non-atomic delete/insert sequence can leave the DB half-seeded. This skill replaces wipe-then-insert
+with schema-derived, env-guarded, transactional upserts.
 
 ## Examples
 

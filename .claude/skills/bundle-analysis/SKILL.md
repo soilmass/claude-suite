@@ -97,19 +97,32 @@ and bundle weight are also cold-start cost, so a leaked dependency is paid twice
 
 ---
 
-## Baseline failure (REPLACE WITH OBSERVED TRANSCRIPT)
-> Encoded failure class, not a captured transcript; replace once observed in the wild.
+## Baseline failure (observed 2026-06-26)
 
-**Failure class encoded:** Asked why a page is slow to load, the agent eyeballs the code and trims
-a few imports without ever running `next build` or reading the module graph. Concrete defects that
-ship: (1) a `"use client"` data table imports the tRPC *router* (`~/server/...`) instead of the
-typed client, dragging Drizzle and the DB module into the browser graph and ballooning First Load
-JS; (2) `import _ from "lodash"` and `import moment from "moment"` ship whole packages where a
-two-function tree-shakeable import or `Intl`/`date-fns` would do; (3) a charting library is
-imported eagerly at the top of a Client Component that renders the chart below the fold, so it
-blocks first load instead of `next/dynamic`-deferring; (4) the "fix" is a guess with no before/after
-byte number, so nobody can tell if it helped; (5) the leaked server module is also edge-incompatible,
-turning a size problem into a deploy failure that goes unnoticed until the edge build breaks.
+> Captured by running the task without this skill (a general-purpose agent, no project conventions). The encoded failure class was confirmed.
+
+**Observed run.** Shown a build artifact for `/dashboard` with a 612 kB First Load JS, the naive
+reviewer caught a lot of the surface: it flagged 612 kB as over budget, identified moment (290 kB) as
+half the bundle and named tree-shakeable swaps, spotted that `lib/pricing.ts` drags `pg`/`fs` into the
+client graph, traced it to a `"use client"` `<Chart/>` importing the server lib, and even noted the
+edge-runtime incompatibility. But its remediation list ended with a parallel recommendation that
+quietly competes with the real fix:
+
+```
+- Split pricing into a server-only module and pass computed values into Chart as props.
+- Consider lazy-loading the chart (next/dynamic, ssr:false) so the charting lib
+  isn't in the initial First Load JS for the route.
+```
+
+Lazy-loading a `"use client"` component that imports a server-only module does not close the boundary
+leak — `pg`/`fs` still get bundled, just deferred — so offering it as a co-equal "consider" dilutes the
+one cut that matters and risks the reviewer's fix landing as the cheap one.
+
+**Failure class (confirmed).** Without this skill a reviewer can correctly enumerate the symptoms yet
+fail to rank the boundary leak as the root cause, presenting "defer it" and "move it across the
+boundary" as interchangeable options. This skill forces one assigned cut per finding and makes the
+server/client boundary the primary axis, so a `next/dynamic` defer is never accepted as a substitute
+for moving server-only code (`pg`/`fs`, the pricing lib) out of the client graph entirely.
 
 ---
 

@@ -95,18 +95,31 @@ the headline severity number.
 
 ---
 
-## Baseline failure (REPLACE WITH OBSERVED TRANSCRIPT)
-> Encoded failure class, not a captured transcript; replace once observed in the wild.
+## Baseline failure (observed 2026-06-26)
 
-**Failure class encoded:** Handed an `npm audit` report, the agent triages by CVSS alone and
-fires off `npm audit fix --force`. Concrete defects that ship: (1) a critical-but-unreachable
-advisory in `eslint`'s dev-only transitive tree is "fixed" while a moderate advisory in a
-package that parses untrusted request bodies **at the edge** is left untouched; (2)
-`--force` pulls a major-version bump that breaks the type chain (Rule 1), turned green by an
-added `any`; (3) a transitive advisory is silenced with an `overrides` pin that is never
-recorded in `DECISIONS.md`, so the next dev reverts it blindly; (4) the audit ran on the dev
-tree only, so a production transitive vuln never surfaced; (5) remaining findings are buried
-in an `audit-ci` allowlist with no reason or expiry, invisible to `security-pass`.
+> Captured by running the task without this skill (a general-purpose agent, no project conventions). The encoded failure class was confirmed.
+
+**Observed run.** Shown a two-advisory scan, the naive reviewer ranked correctly by *outcome*
+but got there partly by accident: it flagged CVE-B (cookie-parser, MODERATE 5.3) as the
+blocker and CVE-A (esbuild-plugin-x, HIGH 9.1) as non-blocking devDep, and even warned not to
+"triage by CVSS number alone." Yet its reachability call was thin — it asserted cookie-parser
+"sits in the edge auth middleware and is reachable from an unauthenticated request header"
+without tracing the import to a path the app actually calls, and it had no method for the case
+where the scores *don't* invert so cleanly.
+
+```
+FOUND: CVE-B (cookie-parser, MODERATE 5.3) is the one I'd actually prioritize despite the
+lower score: it sits in the edge auth middleware and is reachable from an unauthenticated
+request header... CVE-A (esbuild-plugin-x, HIGH 9.1) looks scarier by CVSS but it's a
+build-time devDependency that never ships to production.
+VERDICT: Block on CVE-B; CVE-A is devDep-only and can be bumped non-blocking.
+```
+
+**Failure class (confirmed).** Triage that leans on the CVSS headline ranks a build-only,
+non-shipping advisory above a moderate one that is reachable from untrusted, unauthenticated
+input at the edge — fixing the wrong dependency first. The skill forces the inversion as
+method, not luck: score reachability and runtime surface (edge vs build/dev, auth-gated vs
+not) per advisory before acting, so exploitability beats the base score every time.
 
 ---
 
