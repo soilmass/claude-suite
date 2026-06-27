@@ -111,19 +111,28 @@ fine, it's just a webhook"; "the default Next matcher is good enough."
 
 ---
 
-## Baseline failure (REPLACE WITH OBSERVED TRANSCRIPT)
+## Baseline failure (observed 2026-06-26)
 
-> Encoded failure class per the suite's design; replace with a real run-without-the-skill
-> transcript before treating this as evaluated.
+> Captured by running the task without this skill (a general-purpose agent told to implement as
+> a typical dev would, with no project conventions). The encoded failure class was confirmed.
 
-**Failure class encoded:** Asked to "set up Clerk and a webhook to sync users," the agent
-produces: a webhook route that `await req.json()` and writes straight to the DB with **no
-Svix verification** (a public write endpoint) and **no Zod parse** of the `unknown` body
-(Rule 8); the webhook signing secret pasted into `NEXT_PUBLIC_CLERK_WEBHOOK_SECRET` so it
-ships to the browser (Rule 9); a `middleware.ts` matcher copied from a blog that excludes
-`/api`, leaving every mutation unauthenticated; sign-in URLs hardcoded as `/sign-in` strings
-scattered across components; and `ctx.auth` never wired, so procedures re-call `auth()`
-ad hoc. It all compiles and returns 200 in the happy path.
+**Observed run.** Prompt: "Build a Clerk webhook that verifies the signature and syncs new users into our DB." With no skill the agent produced:
+
+```ts
+const wh = new Webhook(process.env.CLERK_WEBHOOK_SECRET as string);
+let evt: any;
+try {
+  evt = wh.verify(body, { "svix-id": svixId, "svix-timestamp": svixTimestamp, "svix-signature": svixSignature });
+} catch (err) { return new Response("Invalid signature", { status: 400 }); }
+if (evt.type === "user.created") {
+  const { id, email_addresses, first_name, last_name } = evt.data;
+  await db.insert(users).values({ clerkId: id, email: email_addresses[0]?.email_address, firstName: first_name, lastName: last_name, createdAt: new Date() });
+}
+```
+
+Its own note: *"Verify the svix signature with the webhook secret, then insert on the user.created event — kept the handler thin and inline."* — the verified body is typed `any` and never Zod-parsed (Rules 1 and 8), the secret is read with `as string` instead of through the Zod env boundary (Rule 8), and `email_addresses[0]` is dereferenced unchecked so a null email can land in the DB.
+
+**Failure class (confirmed).** A Svix-verified webhook still carries an `unknown` payload, but the naive handler treats verification as the whole job — typing the event `any`, skipping the Zod parse, and trusting `process.env` and array indexing directly. The result compiles and returns 200 even when it writes garbage (or fails to write at all, since the swallowed insert never signals Clerk to retry). This skill forces verify → Zod-parse → idempotent upsert so the boundary is both authenticated and type-safe.
 
 ---
 

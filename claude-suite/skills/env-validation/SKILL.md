@@ -94,17 +94,29 @@ the build faster".
   `vertical-slice` re-enter through here.
 - **Pairs with:** `edge-runtime-constraints` for the edge env-inlining rule.
 
-## Baseline failure (REPLACE WITH OBSERVED TRANSCRIPT)
-> Encoded failure class, not a captured transcript; replace once observed in the wild.
+## Baseline failure (observed 2026-06-26)
 
-**Failure class encoded:** Asked to "add the Stripe key and a public analytics id," the agent
-reaches for raw `process.env`. Concrete defects that ship: (1) `process.env.STRIPE_SECRET_KEY!`
-read directly in a route — untyped (Rule 1) and unvalidated (Rule 8), crashing an edge request
-when unset instead of failing the build; (2) the secret exposed as
-`NEXT_PUBLIC_STRIPE_SECRET_KEY` so it lands in the browser bundle (Rule 9); (3) no build-time
-validation wired, so a missing `DATABASE_URL` deploys green and dies on first query; (4) a
-port read as `process.env.PORT` and used as a number without `coerce`, yielding string math;
-(5) no `.env.example`, so the next developer guesses the key names.
+> Captured by running the task without this skill (a general-purpose agent told to implement as
+> a typical dev would, with no project conventions). The encoded failure class was confirmed.
+
+**Observed run.** Prompt: "wire up the DB connection and a client-callable API base from env vars". With no skill the agent produced:
+
+```ts
+// src/db/index.ts
+const sql = neon(process.env.DATABASE_URL!);
+export const db = drizzle(sql);
+
+// src/lib/api.ts
+export const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL!;
+export async function fetchThings() {
+  const res = await fetch(`${API_BASE_URL}/things`);
+  return res.json(); // : any
+}
+```
+
+Its own note: *"Accessed both env vars directly via process.env with a non-null assertion, and exposed the public API base via a NEXT_PUBLIC_ var so it's available client-side."* — this violates Rule 8 (env is an external input, here read raw with no Zod validation or `createEnv`) and Rule 1 (the `!` assertion and the untyped `res.json()` both break the type chain), and it bites because a missing var surfaces as an opaque runtime crash on an edge request instead of a failed build.
+
+**Failure class (confirmed).** Reaching for `process.env.X!` treats the environment as trusted and typed when it is neither, so misconfiguration is only caught when that code path runs in production rather than at build/startup. The same instinct skips validating the network-boundary response (`res.json()` as `any`), compounding the broken type chain. This skill replaces scattered raw access with one Zod-parsed `env` module validated once at the build boundary.
 
 ## Examples
 

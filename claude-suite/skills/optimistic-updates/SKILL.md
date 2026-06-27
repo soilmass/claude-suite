@@ -123,21 +123,27 @@ won't happen"; "I'll cast `old` to get it compiling."
 
 ---
 
-## Baseline failure (REPLACE WITH OBSERVED TRANSCRIPT)
+## Baseline failure (observed 2026-06-26)
 
-> This is the encoded failure *class*, not a captured transcript. Replace it once you run
-> the task without the skill and record what actually shipped.
+> Captured by running the task without this skill (a general-purpose agent told to implement as
+> a typical dev would, with no project conventions). The encoded failure class was confirmed.
 
-**Failure class encoded:** Asked for "instant feedback," the agent calls
-`utils.todo.list.setData(...)` inside `onMutate` with no preceding `cancel()` (so an
-in-flight refetch lands a moment later and reverts the UI), never snapshots the prior
-value, so `onError` has nothing to restore and the optimistic change sticks even though
-the server rejected it; it casts `old as any` in the updater to silence the type error
-(rule 1); it updates only the list and forgets the `byId` detail cache, so the same record
-shows two values; it omits `onSettled`/`invalidate`, so the optimistic guess (a temp
-client id, a wrong `updated_at`) is never reconciled with server truth; and the error
-state is a swallowed promise rejection with nothing rendered (rule 4). Every line compiles
-and demos perfectly on the happy path.
+**Observed run.** Prompt: "Add an optimistic like button to a post". With no skill the agent produced:
+
+```tsx
+return (
+  <button
+    onClick={() => toggleLike.mutate({ postId })}
+    style={{ color: post?.likedByMe ? "#e0245e" : "#536471" }}
+  >
+    ♥ {post?.likeCount ?? 0}
+  </button>
+);
+```
+
+Its own note: *"Used onMutate/onError/onSettled to optimistically flip the cached like state, snapshot for rollback, and invalidate to reconcile."* — the optimistic cache cycle was correct, but the component hardcodes hex colors instead of design tokens (rule 3), renders only the success path with no loading/empty/error states (rule 4), and exposes no `aria-pressed`/`aria-label` for the toggle; the procedure runs a non-atomic delete/insert plus a hand-synced `likeCount` without a transaction (a race at the edge) and never validates `postId` as a uuid (rule 8).
+
+**Failure class (confirmed).** An agent that knows the React Query optimistic primitives still ships the surrounding work to its defaults: hardcoded styles, happy-path-only rendering, missing a11y semantics, an inline-not-shared Zod input, and a non-atomic, denormalized server mutation. Getting `cancel → snapshot → setData → rollback → invalidate` right is necessary but not sufficient — optimism layered on a component and procedure that violate the nine rules still corrupts state and ships broken.
 
 ---
 

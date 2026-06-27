@@ -4,11 +4,16 @@
  * Wired under hooks.PreToolUse (matcher: Edit|Write) in settings.json.
  *
  * Blocks writing content that puts a secret on the client side: a secret-shaped NEXT_PUBLIC_
- * variable, or a long high-entropy key literal in a file that looks client-bound. Fast regex
- * only — no network. It is a backstop, not a replacement for the secret-scan skill / CI.
+ * variable, server env in a "use client" file, or a credential literal. Fast regex, no network.
  *
- * Contract: stdin = PreToolUse event JSON. Exit 0 = allow; exit 2 = block with the offending
- * pattern and the fix.
+ * Exemptions (so the guard does not block legitimate writes):
+ *  - Markdown (.md/.mdx) is documentation, not shipped code — the variable-name / use-client
+ *    checks are skipped so a skill or baseline may NAME the anti-pattern. Real credential
+ *    literals are still flagged in docs (a key committed anywhere is a leak).
+ *  - The security tooling itself (this file, scan.mjs) legitimately contains the patterns it
+ *    scans for, so it is fully exempt — otherwise it could never be edited through the tool.
+ *
+ * Contract: stdin = PreToolUse event JSON. Exit 0 = allow; exit 2 = block with the fix.
  */
 import { readFileSync } from "node:fs";
 
@@ -21,24 +26,31 @@ try {
 
 const ti = event?.tool_input ?? {};
 const path = ti.file_path ?? "";
-// Content to inspect: Write.content or Edit.new_string.
 const content = ti.content ?? ti.new_string ?? "";
 if (!content) process.exit(0);
 
+const isDoc = /\.(md|mdx|markdown)$/i.test(path);
+const isSecurityTool = /(no-secrets-guard|scan)\.mjs$/.test(path);
+
 const hits = [];
 
-// Rule 9: secret-shaped NEXT_PUBLIC_ vars are always wrong.
-const pub = /NEXT_PUBLIC_\w*(SECRET|KEY|TOKEN|PASSWORD|PRIVATE|CREDENTIAL)/gi;
-let m;
-while ((m = pub.exec(content)) !== null) hits.push(`secret-shaped public var: ${m[0]}`);
+if (!isDoc && !isSecurityTool) {
+  // Rule 9: secret-shaped NEXT_PUBLIC_ vars are always wrong in shipped code.
+  const pub = /NEXT_PUBLIC_\w*(SECRET|KEY|TOKEN|PASSWORD|PRIVATE|CREDENTIAL)/gi;
+  let pm;
+  while ((pm = pub.exec(content)) !== null) hits.push(`secret-shaped public var: ${pm[0]}`);
 
-// Known key prefixes that must never be client-bound.
-const keyish = /\b(sk_live_|sk_test_|rk_live_|AKIA[0-9A-Z]{16}|-----BEGIN [A-Z ]*PRIVATE KEY-----)/g;
-while ((m = keyish.exec(content)) !== null) hits.push(`hardcoded credential literal: ${m[1]}`);
+  // A "use client" file importing server env is a leak smell.
+  if (/["']use client["']/.test(content) && /process\.env\.(?!NEXT_PUBLIC_)/.test(content)) {
+    hits.push(`server env (process.env.*) referenced in a "use client" file: ${path}`);
+  }
+}
 
-// A "use client" file importing process.env (server-only) is a leak smell.
-if (/["']use client["']/.test(content) && /process\.env\.(?!NEXT_PUBLIC_)/.test(content)) {
-  hits.push(`server env (process.env.*) referenced in a "use client" file: ${path}`);
+if (!isSecurityTool) {
+  // Credential literals must never be committed — flagged everywhere except the scanner sources.
+  const keyish = /\b(sk_live_|sk_test_|rk_live_|AKIA[0-9A-Z]{16}|-----BEGIN [A-Z ]*PRIVATE KEY-----)/g;
+  let m;
+  while ((m = keyish.exec(content)) !== null) hits.push(`hardcoded credential literal: ${m[1]}`);
 }
 
 if (hits.length === 0) process.exit(0);

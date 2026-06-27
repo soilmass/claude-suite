@@ -129,19 +129,27 @@ the data is really there"; "fetching all children once and filtering is basicall
 
 ---
 
-## Baseline failure (REPLACE WITH OBSERVED TRANSCRIPT)
+## Baseline failure (observed 2026-06-26)
 
-> This is the encoded failure class, not a captured transcript. Replace it after running
-> the task without the skill and recording what the agent actually does.
+> Captured by running the task without this skill (a general-purpose agent told to implement as
+> a typical dev would, with no project conventions). The encoded failure class was confirmed.
 
-**Failure class encoded:** Asked to "list each project with its tasks," the agent fetches
-the projects, then writes `projects.map(async (p) => ({ ...p, tasks: await db.query.tasks.findMany({ where: eq(tasks.projectId, p.id) }) }))` — one query per project (Rule 7).
-Variants: wrapping the same per-row queries in `Promise.all` (still N+1, just concurrent);
-fetching all tasks across every user and filtering by `projectId` in JS (breaks Rule 2,
-leaks other users' rows); `with`-ing an unbounded comment list on a feed endpoint (payload
-bomb, no `limit`); and casting the assembled object `as ProjectWithTasks[]` because the
-hand-built shape doesn't infer (breaks Rule 1). Each compiles and returns correct data on
-a 3-row dev seed, then melts the edge function on real data.
+**Observed run.** Prompt: "Implement a tRPC `getAll` that returns every post with its author." With no skill the agent produced:
+
+```ts
+const allPosts = await ctx.db.select().from(posts);
+const postsWithAuthors = await Promise.all(
+  allPosts.map(async (post) => {
+    const author = await ctx.db
+      .select().from(users).where(eq(users.id, post.authorId));
+    return { ...post, author: author[0] };
+  }),
+);
+```
+
+Its own note: *"Fetched all posts, then mapped over them and ran a per-post query to grab each author — simplest mental model."* — that is Rule 7's exact tell (a query inside `Promise.all`/`.map` over rows instead of a join or relational `with`), and it bites because it issues O(rows) round trips at the edge; the run also leaked `select()` columns (Rule 1/9) and skipped Zod output validation (Rule 8).
+
+**Failure class (confirmed).** The "get the list, then get each item's relation" mental model compiles, passes a 3-row dev seed, and reads as correct — then melts the edge function once row counts grow, because every parent row fires its own child query. Wrapping the loop in `Promise.all` only makes the N+1 concurrent, not singular. This skill prevents it by writing the single-round-trip shape (relational `with` or an explicit join) the first time, with ownership anchored and columns narrowed.
 
 ---
 

@@ -12,14 +12,23 @@
       {
         "matcher": "Bash",
         "hooks": [
-          { "type": "command", "command": "node .claude/hooks/pre-commit-gate.mjs" }
+          {
+            "type": "command",
+            "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/pre-commit-gate.mjs\""
+          }
         ]
       },
       {
         "matcher": "Edit|Write",
         "hooks": [
-          { "type": "command", "command": "node .claude/hooks/protect-source-of-truth.mjs" },
-          { "type": "command", "command": "node .claude/hooks/no-secrets-guard.mjs" }
+          {
+            "type": "command",
+            "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/protect-source-of-truth.mjs\""
+          },
+          {
+            "type": "command",
+            "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/no-secrets-guard.mjs\""
+          }
         ]
       }
     ],
@@ -27,29 +36,42 @@
       {
         "matcher": "Edit|Write",
         "hooks": [
-          { "type": "command", "command": "node .claude/hooks/drift-guard.mjs" }
+          {
+            "type": "command",
+            "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/drift-guard.mjs\""
+          }
         ]
       },
       {
         "matcher": "Write",
         "hooks": [
-          { "type": "command", "command": "node .claude/hooks/skill-lint.mjs" }
+          {
+            "type": "command",
+            "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/skill-lint.mjs\""
+          }
         ]
       }
     ],
     "Stop": [
       {
         "hooks": [
-          { "type": "command", "command": "node .claude/hooks/stop-gates-reminder.mjs" }
+          {
+            "type": "command",
+            "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/stop-gates-reminder.mjs\""
+          }
         ]
       }
     ],
     "SessionStart": [
       {
         "hooks": [
-          { "type": "command", "command": "node .claude/hooks/session-context.mjs" }
+          {
+            "type": "command",
+            "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/session-context.mjs\""
+          }
         ]
       }
     ]
-  }
+  },
+  "$note": "Hook commands use $CLAUDE_PROJECT_DIR (Claude Code sets it to the project root for hooks). If your setup lacks it, replace with an absolute path."
 }

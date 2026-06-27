@@ -126,21 +126,34 @@ random so we don't need the ownership check."
 
 ---
 
-## Baseline failure (REPLACE WITH OBSERVED TRANSCRIPT)
+## Baseline failure (observed 2026-06-26)
 
-> This is the encoded failure class, not a captured transcript. Replace it after running the
-> task without the skill and recording what the agent actually does.
+> Captured by running the task without this skill (a general-purpose agent told to implement as
+> a typical dev would, with no project conventions). The encoded failure class was confirmed.
 
-**Failure class encoded:** Asked to "set up IDs for the orders and invoices tables," the agent
-types every primary key as `serial`/`bigserial`, including `orders.id` and `invoices.id` that
-go straight into `/orders/[id]` routes and emailed invoice links — handing any user a working
-enumeration of every order (`/orders/1`, `/orders/2`, …) and leaking total volume off the max
-ID. Told to "use UUIDs," it swaps in random v4 (`gen_random_uuid()`), trading the leak for index
-fragmentation and write amplification as random keys scatter across the btree. It stores the
-UUID as `text` (32+ bytes, no validation) instead of native `uuid`, mismatches a foreign key
-(UUID child pointing at a serial parent), and skips Zod-validating the `[id]` route param so a
-malformed ID reaches the query. Each compiles and passes a happy-path review; the enumeration
-only surfaces in a pen test.
+**Observed run.** Prompt: "Define the Drizzle schema for a shareable `documents` table with a
+public URL." With no skill the agent produced:
+
+```ts
+export const documents = pgTable("documents", {
+  id: serial("id").primaryKey(),
+  slug: varchar("slug", { length: 255 }).notNull().unique(),
+  title: text("title").notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+```
+
+Its own note: *"Used an auto-incrementing serial integer as the primary key and a unique slug
+for the public URL — simplest thing that works."* — the surrogate PK is an enumerable `serial`
+(exposes row count and is an IDOR map the moment the id reaches a URL), and the timestamps are
+`timestamp` not `timestamptz`, violating both the IDs convention and Rule 6.
+
+**Failure class (confirmed).** Reaching for `serial`/`bigserial` as the default primary key
+hands out sequential, enumerable identifiers — a business-metric leak and IDOR surface — even
+when a "public" feel is faked with a slug while the integer id stays one URL away from exposure.
+This skill forces the per-table trust-boundary call: UUIDv7 for anything that can cross a
+boundary, BIGSERIAL only for rows proven internal-only, stored as native `uuid`, never v4.
 
 ---
 

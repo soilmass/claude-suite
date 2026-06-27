@@ -108,19 +108,43 @@ focus trap later"; "Radix is overkill for a dropdown"; "the title isn't needed, 
 
 ---
 
-## Baseline failure (REPLACE WITH OBSERVED TRANSCRIPT)
+## Baseline failure (observed 2026-06-26)
 
-> Encoded failure class per the suite's design; replace with a real run-without-the-skill
-> transcript before treating this as evaluated.
+> Captured by running the task without this skill (a general-purpose agent told to implement as
+> a typical dev would, with no project conventions). The encoded failure class was confirmed.
 
-**Failure class encoded:** Asked to "add a delete-confirm modal," the agent hand-builds it: a
-`useState(false)` boolean, a fixed-position `<div>` backdrop with a raw `bg-black/50` and
-arbitrary `px` insets (violates Rule 3), no focus trap (tab escapes to the page behind), no
-Escape-to-close, no focus return to the trigger on close, and no `role="dialog"`/`aria-modal`/
-labelled title — so screen readers announce nothing. A "combobox" ships as a styled `<input>`
-over a `<div>` list with hand-rolled arrow-key handling and no `aria-activedescendant`, and it
-renders only the happy path with no loading/empty/error states (violates Rule 4). It demos
-fine with a mouse and fails every keyboard and assistive-tech user.
+**Observed run.** Prompt: "Add an account dropdown menu to the navbar showing the user's name,
+avatar, and links to account/billing/sign-out." With no skill the agent produced:
+
+```ts
+const [open, setOpen] = useState(false);
+useEffect(() => {
+  function handler(e: MouseEvent) {
+    if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+  }
+  document.addEventListener("mousedown", handler);
+  return () => document.removeEventListener("mousedown", handler);
+}, []);
+// ...
+<span className="text-sm font-medium" style={{ color: "#111827" }}>{user.name}</span>
+{open && (
+  <div className="absolute right-0 mt-2 w-48 ..." style={{ padding: "8px" }}>
+    <a href="/account" className="block px-3 py-2 ...">Account settings</a>
+```
+
+Its own note: *"Hand-rolled dropdown with useState + outside-click useEffect instead of pulling
+in a primitives library."* — this is exactly the hand-built interactive widget the UI-primitives
+spine forbids: a `div`-based menu with no `role="menu"`/`menuitem`, no focus trap, no
+Escape-to-close, and no arrow-key navigation, plus hardcoded `#111827` and arbitrary `8px`
+inline styles that violate Rule 3 and a happy-path-only render that assumes `user` is always
+present (violates Rule 4).
+
+**Failure class (confirmed).** The quick path for any overlay or menu is to reach for
+`useState` + a manual outside-click handler over plain `div`/`a` markup, which demos fine with a
+mouse but is invisible and unreachable for keyboard and screen-reader users — and it drags in
+sibling defects (inline hex/px instead of tokens, no four-state handling, raw `<a>`/`<img>` over
+`next/link`/`next/image`). Composing the Radix-backed shadcn primitive instead makes the widget
+accessible by construction and keeps styling on tokens.
 
 ---
 

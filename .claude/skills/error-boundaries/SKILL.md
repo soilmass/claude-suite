@@ -112,20 +112,30 @@ can debug it in prod."
 
 ---
 
-## Baseline failure (REPLACE WITH OBSERVED TRANSCRIPT)
+## Baseline failure (observed 2026-06-26)
 
-> Encoded failure class per the suite's design; replace with a real run-without-the-skill
-> transcript before treating this as evaluated.
+> Captured by running the task without this skill (a general-purpose agent told to implement as
+> a typical dev would, with no project conventions). The encoded failure class was confirmed.
 
-**Failure class encoded:** Asked to "build the page for X," the agent writes only `page.tsx`.
-A slow server fetch leaves the route frozen with no `loading.tsx`, so the user stares at the
-previous page until data lands. A thrown query produces Next's dev error overlay in dev and a
-blank/500 in prod because there is no `error.tsx` — and when one is finally added, it just
-prints `error.message` with no `reset()`, dead-ending the user and leaking the stack. A missing
-row throws a 500 instead of calling `notFound()`, and an *unowned* row is 500'd rather than
-404'd, leaking that the resource exists (Rule 2). The loading state, where present, is a bare
-centered spinner that reflows the whole layout when content arrives. It renders in dev and
-looks done.
+**Observed run.** Prompt: "Build the dashboard page that lists the user's projects". With no skill the agent produced:
+
+```tsx
+const { data: projects, isLoading } = api.project.getAll.useQuery();
+
+if (isLoading) return <div className="p-8">Loading...</div>;
+
+return (
+  <div className="grid grid-cols-3 gap-4">
+    {projects?.map((project) => (
+      <Link key={project.id} href={`/projects/${project.id}`}>{project.name}</Link>
+    ))}
+  </div>
+);
+```
+
+Its own note: *"Used a client component with a tRPC useQuery hook for the simplest fetch-and-render path."* — only the loading and success states exist: there is no `error.tsx`/`loading.tsx` route neighbor, a thrown query has no recovery surface, and an empty list renders a blank grid, violating Rule 4 (all four states).
+
+**Failure class (confirmed).** Asked to "build the page for X," the agent handles the happy path plus an inline `isLoading` spinner and stops there. The thrown state has no `error.tsx` (so a failed fetch becomes Next's overlay or a white screen with no `reset()`), the absent state has no empty guard (an empty array shows a blank shell), and a missing/unowned row would 500 instead of calling `notFound()`. It renders in dev and looks done while three of the four route states are missing.
 
 ---
 

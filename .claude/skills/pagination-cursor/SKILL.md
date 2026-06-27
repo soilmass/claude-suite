@@ -130,21 +130,35 @@ if duplicates show up."
 
 ---
 
-## Baseline failure (REPLACE WITH OBSERVED TRANSCRIPT)
+## Baseline failure (observed 2026-06-26)
 
-> This is the encoded failure class, not a captured transcript. Replace it after running the
-> task without the skill and recording what the agent actually does.
+> Captured by running the task without this skill (a general-purpose agent told to implement as
+> a typical dev would, with no project conventions). The encoded failure class was confirmed.
 
-**Failure class encoded:** Asked to "add infinite scroll to the orders list," the agent
-writes `db.select().from(orders).limit(20).offset(page * 20)` driven by a `page` input —
-offset pagination (re-scans O(offset) rows every page on the edge). Variants: paging on a
-bare `orderBy(desc(orders.createdAt))` with no tiebreaker, so two orders sharing a
-millisecond are dropped or shown twice across the page boundary; passing the raw client
-`cursor` straight into `lt()` with no Zod parse and casting it `as number` (breaks Rules 8,
-1); forgetting the `ctx.auth.userId` scope so page two leaks other users' orders (breaks
-Rule 2); and a component that treats zero rows as a perpetual spinner (breaks Rule 4). Each
-works on a 15-row dev seed and corrupts the moment the table grows and rows are inserted
-between page fetches.
+**Observed run.** Prompt: "Paginate the posts list in a tRPC router and a Next.js page". With
+no skill the agent produced:
+
+```ts
+const offset = (page - 1) * pageSize;
+const items = await ctx.db.select().from(posts)
+  .orderBy(desc(posts.createdAt)).limit(pageSize).offset(offset);
+const [{ count }] = await ctx.db
+  .select({ count: sql<number>`count(*)` }).from(posts);
+```
+
+Its own note: *"Used offset/limit pagination with a page number and a separate count(*) query
+— the most familiar 'page X of Y' pattern, simplest to wire to prev/next buttons."* — this is
+offset pagination (skips/duplicates rows on concurrent inserts, O(offset) scan on the edge),
+plus a full-scan `count(*)` per request and an unindexed `createdAt` sort; the `publicProcedure`
+has no `ctx.auth.userId` scope (Rule 2), the `sql<number>` count is a loose boundary (Rules 1/8),
+and the UI renders only loading + success — no empty, no error (Rule 4) — with inline `16px`/`8px`
+styles (Rule 3).
+
+**Failure class (confirmed).** Reaching for the familiar "page X of Y" pattern yields
+`LIMIT/OFFSET` plus a `count(*)` companion query — correct on a dev seed, corrupt and slow
+under real traffic as the table grows and rows are inserted between page fetches. This skill
+replaces it with keyset pagination: a tie-broken `(sort, id)` cursor, an opaque Zod-validated
+cursor boundary, ownership-scoped `where`, and a four-state list.
 
 ---
 

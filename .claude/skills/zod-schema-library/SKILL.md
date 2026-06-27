@@ -95,24 +95,41 @@ parse," "I'll cast the transform result to keep TypeScript quiet."
 - **Pairs with:** `rule-audit` (verifies Rules 1, 5, 6, 8 on the result).
 - **Hands off:** `migration-author` when a refinement reveals a needed column change.
 
-## Baseline failure (REPLACE WITH OBSERVED TRANSCRIPT)
+## Baseline failure (observed 2026-06-26)
 
-> This is the encoded failure *class*, not a captured transcript. Replace it with a real
-> transcript once one is observed.
+> Captured by running the task without this skill (a general-purpose agent told to implement as
+> a typical dev would, with no project conventions). The encoded failure class was confirmed.
 
-**Failure class encoded:** Without this skill, a generated "shared" schema tends to ship with:
+**Observed run.** Prompt: "Add a create-project feature: a tRPC mutation and a React Hook Form
+that validate name, optional description, and an optional budget". With no skill the agent produced:
 
-- two schemas for one operation — a full one on the tRPC input and a hand-trimmed lighter
-  one in the form — that silently drift the moment a field is added (violates the
-  one-schema-shared spine).
-- money typed as `z.number()` representing dollars, so `19.99` rounds and reconciles wrong
-  (Rule 5).
-- a route param or `searchParams` value read as a raw string with no `z.coerce`/`.parse`,
-  passed straight into a query (Rule 8).
-- a `.transform()` baked into the shared schema that makes the inferred output unrenderable
-  by the form, then "fixed" with an `as` cast (Rule 1).
-- a cross-field `.refine` with no `path`, so RHF shows a form-level error the user can't
-  attribute to a field.
+```ts
+// server/api/routers/project.ts
+const createProjectSchema = z.object({
+  name: z.string().min(1, "Name is required").max(100),
+  description: z.string().optional(),
+  budget: z.number().optional(),
+});
+
+// components/create-project-form.tsx — a SECOND, independent copy
+const formSchema = z.object({
+  name: z.string().min(1, "Name is required").max(100),
+  description: z.string().optional(),
+  budget: z.coerce.number().optional(), // already diverged: coerce vs plain number
+});
+```
+
+Its own note: *"Two separate Zod schemas (one in the router, one in the form) defining the same
+shape independently — the natural default, and they will drift."* — this violates the
+one-schema-shared spine and Rule 8, and `budget` as `z.number()` dollars violates Rule 5 (money
+never float); the `z.coerce.number` vs `z.number` split is the drift already starting.
+
+**Failure class (confirmed).** Left to its instincts, an agent restates the shape on each end
+instead of importing one exported schema, so the two copies diverge silently the moment a field
+or coercion changes — and the same blind spot ships money as a float `z.number()` rather than
+integer minor units. The cost lands later, when validation passes on one side and fails on the
+other and money reconciles wrong; this skill makes the schema a single shared contract both ends
+obey, with money typed as cents.
 
 ## Examples
 

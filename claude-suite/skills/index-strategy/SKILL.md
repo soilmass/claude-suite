@@ -124,21 +124,27 @@ cheap"; "we'll add the index once it's slow in prod."
   coordinated deploy); a missing relation or wrong cardinality → `schema-design`.
 
 
-## Baseline failure (REPLACE WITH OBSERVED TRANSCRIPT)
+## Baseline failure (observed 2026-06-26)
 
-> This is the encoded failure class, not a captured transcript. Replace it after running
-> the task without the skill and recording what the agent actually does.
+> Captured by running the task without this skill (a general-purpose agent told to implement as
+> a typical dev would, with no project conventions). The encoded failure class was confirmed.
 
-**Failure class encoded:** Asked to "add the right indexes for the orders table," the agent
-defines FK columns (`userId`, `orgId`) and ships **zero** indexes, assuming Postgres indexes
-foreign keys automatically (it does not) — every ownership filter and join becomes a
-sequential scan. Variants: for `where userId = ? and status = 'active' order by created_at
-desc` it adds three single-column indexes instead of one partial composite `(userId,
-createdAt) where status = 'active'`, so the planner bitmap-ANDs and still re-sorts; it gives
-`deleted_at`/`status` full indexes that bloat with every dead row; it orders the composite
-`(createdAt, userId)` so the frequent `where userId = ?` left-prefix lookup can't use it;
-and it "indexes everything," taxing every write. Each passes on a 50-row seed, then scans
-millions at the edge.
+**Observed run.** Prompt: "Define a Drizzle orders table that belongs to a user and has a status and total". With no skill the agent produced:
+
+```ts
+export const orders = pgTable("orders", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull(),
+  status: varchar("status", { length: 50 }).notNull().default("pending"),
+  total: doublePrecision("total").notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+```
+
+Its own note: *"Used a plain pgTable with serial PK and sensible columns; status defaults to 'pending' and total stored as a numeric amount."* — the table defines **zero** indexes despite `userId` and `status` being the frequently-filtered columns this skill exists to index, and it compounds the miss with `doublePrecision` money (Rule 5), `timestamp` without timezone (Rule 6), an enumerable `serial` PK, and a bare `userId` integer with no foreign-key constraint.
+
+**Failure class (confirmed).** Left to defaults, the agent ships a table whose hot filter and join columns carry no index at all — assuming Postgres indexes foreign keys automatically (it does not), so every ownership filter and join becomes a sequential scan. It reaches for no composite, no partial, and no FK index, and the omission is invisible on a small seed. This skill forces the index set to be derived from the actual query shapes before the table ships, instead of discovered when it falls over at the edge.
 
 
 ## Examples
