@@ -81,8 +81,18 @@ for (const dir of dirs) {
   const sot = front.match(/source_of_truth:\s*(.+)$/m);
   if (!sot) report(slug, "metadata missing `source_of_truth`");
   else {
-    const target = resolve(dirname(file), sot[1].trim());
-    if (!existsSync(target)) report(slug, `source_of_truth not resolvable: ${sot[1].trim()}`);
+    // Dual-home tolerance. A distributable skill ships byte-identical in BOTH
+    // claude-suite/skills/<slug>/ (where `../../CLAUDE.md` is the bundle spine) and the install
+    // copy .claude/skills/<slug>/ (where the repo-root CLAUDE.md sits one level further up).
+    // Foundation skills are .claude-only and use `../../../CLAUDE.md`. Since the same bytes live
+    // at two depths from a CLAUDE.md, accept the documentary path if the CLAUDE.md it names
+    // resolves at the stated depth OR ±1 level (the bundle-vs-install shift); a genuinely wrong
+    // basename/path resolves at no depth and is still flagged.
+    const val = sot[1].trim();
+    const base = dirname(file);
+    const candidates = [val, val.replace(/^\.\.\//, ""), "../" + val];
+    if (!candidates.some((p) => existsSync(resolve(base, p))))
+      report(slug, `source_of_truth not resolvable: ${val}`);
   }
 
   // --- title ---
