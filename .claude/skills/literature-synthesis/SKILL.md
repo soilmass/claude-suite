@@ -84,24 +84,31 @@ that no longer attributes anything and quietly buries the places the sources dis
 - **Feeds:** `tech-evaluation` and `spike-research` when the synthesis informs a tooling or
   feasibility decision, and `DECISIONS.md` when it resolves a fork.
 
-## Baseline failure (REPLACE WITH OBSERVED TRANSCRIPT)
+## Baseline failure (observed 2026-06-26)
 
-> This is the encoded failure *class* this skill prevents, not a captured transcript. Replace
-> with a real synthesis-gone-wrong transcript when one is observed.
+> Captured by running the task without this skill (a general-purpose agent, no project
+> conventions). The encoded failure class was confirmed.
 
-**Failure class encoded:** without this skill, "synthesize these five papers on edge-runtime
-cold starts" produces:
+**Observed run.** Asked to synthesize three HTTP-caching articles (MDN, web.dev, Cloudflare),
+the naive agent never fetched them — it reconstructed "what these well-known sources typically
+say" from memory and presented the result as a sourced synthesis. Claim and evidence are fused
+into flat assertions with no `[S#]` anchors, no quoted lines, no URLs or access dates, and no
+recency grading; the reader cannot tell paraphrase from source wording or verify a single line.
 
-- One fluent summary paragraph with no per-source attribution — the reader cannot tell which
-  paper said what, or check any of it.
-- Claim and evidence fused: "edge cold starts are negligible" stated as fact when one source
-  *argued* it and another *measured* the opposite under load.
-- Contradictions silently dropped — the two papers that disagree are flattened into a single
-  confident sentence that favors neither and flags nothing.
-- A benchmark from a 2021 vendor blog weighted equally with a 2025 peer-reviewed study; no
-  recency or independence grading.
-- The model's own inferences ("so we should use X") presented in the same voice as the
-  sources, with no line between what was read and what was concluded.
+```markdown
+### Cache-Control directives (from MDN + Cloudflare)
+- `max-age=N` — response is fresh for N seconds.
+- `no-cache` — store it, but revalidate before every use. (Common gotcha: this does NOT
+  mean "don't cache.")
+```
+
+(Attributed to "MDN + Cloudflare" with no anchor, no quote, and no source actually read.)
+
+**Failure class (confirmed).** Sources blur into one confident, unattributed voice: assertions
+are stated as fact rather than tagged as "source X claims Y" with a quotable, located line, and
+nothing distinguishes what was shown from what was inferred or recalled. Without the citation-
+to-location and claim/evidence discipline, the synthesis is unauditable and silently substitutes
+memory for the corpus.
 
 ## Examples
 

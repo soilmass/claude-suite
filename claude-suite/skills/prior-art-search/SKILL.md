@@ -93,19 +93,35 @@ or build the feature.
 - **Hands off:** unscored community candidates to `tech-evaluation` for five-gate scoring; a feasibility
   question with no clear prior art to `spike-research`.
 
-## Baseline failure (REPLACE WITH OBSERVED TRANSCRIPT)
-> This is the encoded failure *class* this skill prevents, not a captured transcript.
-> Replace with a real reinvention-gone-wrong transcript when one is observed.
+## Baseline failure (observed 2026-06-26)
 
-**Failure class encoded:** asked to "add money formatting to the invoice page," the agent writes
-a fresh `formatCurrency` util and starts building. Concrete defects that ship: (1) an in-repo
-`src/lib/money.ts` already does it (and correctly treats values as minor units, Rule 5) — now
-there are two drifting copies; (2) the new util uses `Intl` wrong or hand-rolls it, when the
-stack already standardized on a helper; (3) a "date picker" gets hand-built with `div`s and
-keydown handlers instead of composing the shadcn/Radix primitive the spine mandates — losing
-focus-trap and a11y for free; (4) a dependency is added for cursor pagination when
-`pagination-cursor` already encodes the Drizzle pattern; (5) no record of what was searched, so
-the next person re-runs the same dead-end search and reinvents it a third time.
+> Captured by running the task without this skill (a general-purpose agent, no project
+> conventions). The encoded failure class was confirmed.
+
+**Observed run.** Asked to do a prior-art search for "CSV export," the naive agent grepped
+broadly, correctly concluded no prior art exists, and then produced a free-form findings doc
+that ignored the house format entirely — no `Use when:`/`Do NOT use for:` framing, no ranked
+adopt/extend/build memo, no record against `DECISIONS.md` — and drifted past pure prior-art
+into forward-looking build advice it inferred rather than cited:
+
+```markdown
+## Recommendation
+Greenfield: there is nothing to extend. Build new. Decisions to make up front:
+- Generate via a Next.js Route Handler returning `text/csv` (streamed), not a JSON tRPC proc.
+- Pick an edge-safe CSV serializer (verify Web Streams / no Node `Buffer` dependency).
+- Apply ownership scoping to the exported rows (Rule 2) and pull data with a single
+  relational query, not per-row.
+```
+
+It never read `CLAUDE.md`, `DECISIONS.md`, or any `SKILL.md`, never invoked the suite's own
+procedure, and skipped git history and the README narrative — so the search was neither
+house-format nor exhaustive.
+
+**Failure class (confirmed).** Without the skill, an agent treats prior-art search as ad-hoc
+grepping that yields a one-off prose doc instead of the suite's structured, ranked memo wired
+to `DECISIONS.md`. It also smears the search into premature build recommendations and stops at
+the live tree, missing git history and planning docs — so the result is unrepeatable, drifts
+from the spine, and the next person re-runs the same incomplete search.
 
 ## Examples
 

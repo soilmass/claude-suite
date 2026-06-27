@@ -84,14 +84,32 @@ tools, simpler"; "args are obvious."
 
 ---
 
-## Baseline failure (REPLACE WITH OBSERVED TRANSCRIPT)
+## Baseline failure (observed 2026-06-26)
 
-> Encoded failure class per the suite's design; replace with a real transcript.
+> Captured by running the task without this skill (a general-purpose agent, no project
+> conventions). The encoded failure class was confirmed.
 
-**Failure class encoded:** Asked to "add a /gates command," the agent writes a body that
-re-lists the rule-audit / a11y-gate / security-pass procedures inline (so when a gate's skill
-changes, the command silently runs the stale version), grants unrestricted `allowed-tools`,
-and ignores `$ARGUMENTS` so `/gates src/feature` audits the whole repo instead of the path.
+**Observed run.** Asked to add a `/gates` command, the naive agent wrote a body that
+re-lists each gate's procedure inline — the nine rules copied from memory, grep snippets,
+and the axe/`pnpm audit` invocations — instead of invoking the existing `rule-audit`,
+`a11y-gate`, and `security-pass` skills. The frontmatter carried only a `description`, it
+never looked at sibling commands, and the result contract was hand-waved ("Exit non-zero
+feel"):
+
+```markdown
+## 1. Rule audit (the nine inviolable rules)
+...
+rg -n ': any|@ts-ignore|as any' src/
+rg -n '#[0-9a-fA-F]{3,6}|\[[0-9]+px\]' src/
+...
+Exit non-zero feel (report FAIL overall) if any gate failed.
+```
+
+**Failure class (confirmed).** Left to its own devices, the agent reimplements the skills a
+command should merely invoke — duplicating the nine rules and gate steps that drift the
+moment a canonical skill changes — guesses at frontmatter shape, and leaves a vague result
+contract. This skill forces a thin body that names the skills, a house-style frontmatter, and
+an explicit pass/fail contract.
 
 ---
 

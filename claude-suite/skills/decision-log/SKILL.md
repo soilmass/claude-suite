@@ -104,21 +104,31 @@ that has no fork is not a decision and gets no entry.
 
 ---
 
-## Baseline failure (REPLACE WITH OBSERVED TRANSCRIPT)
+## Baseline failure (observed 2026-06-26)
 
-> This is the encoded failure class, not a captured transcript. Replace it after running the task
-> without the skill and recording what the agent actually does.
+> Captured by running the task without this skill (a general-purpose agent, no project
+> conventions). The encoded failure class was confirmed.
 
-**Failure class encoded:** Told "we decided to store money as `numeric(12,2)` on `invoices`," the
-agent makes the schema change and moves on, **logging nothing** — next sprint another agent reads
-Rule 5's "integer minor units" and "fixes" the column, breaking reconciliation. When it *does*
-write something, it appends undated free prose ("we use decimal now") with **no scope** (which
-tables?), **no rationale** (why not cents?), and **no link** to Rule 5, so a reader can't tell if
-it's a sanctioned resolution or drift. Asked to reverse an earlier call, it **edits the old entry
-in place**, erasing the audit trail of what was decided when. It logs trivial rule-applications
-that forked nothing (noise), yet pushes a genuinely architectural decision into a one-line
-`DECISIONS.md` stub instead of an ADR (no options, no consequences). And it never greps first, so
-the same fork gets two contradictory entries weeks apart.
+**Observed run.** Asked to record the UUIDv7-for-public-IDs call, the naive agent never read
+`CLAUDE.md` or `DECISIONS.md` — where UUIDv7-for-public and BIGSERIAL-for-internal are *already*
+the decided spine — so it re-stated a settled default as if new, risking a duplicate or conflicting
+record. It used an ad-hoc heading with no decision template (no Context/Decision/Consequences, no
+ID, no author), mentioned the rejected alternatives only in passing, and gave no reversibility note
+or migration plan for tables already on UUIDv4:
+
+```markdown
+## Use UUIDv7 for public-facing IDs
+**Date:** 2026-06-26
+**Status:** Adopted
+...
+- Existing tables already on UUIDv4 stay as-is for now; no big migration unless we have a reason.
+```
+
+**Failure class (confirmed).** Without grepping the existing log and spine first, an agent
+re-litigates an already-decided fork instead of recording only the project-specific resolution,
+and writes undated/untemplated prose with no scope, no named-and-rejected alternatives, no
+reversibility (one-way vs two-way door), and no link to the rule it touches — leaving a reader
+unable to tell a sanctioned decision from drift.
 
 ---
 

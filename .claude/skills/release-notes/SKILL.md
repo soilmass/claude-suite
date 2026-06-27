@@ -84,23 +84,31 @@ product-voice and secret-hygiene conventions the prose must respect.
 - **Hands off:** upgrade decisions to `DECISIONS.md`; perishable version claims to
   `perishable-refresh`; migration upgrade steps reference `migration-author` output.
 
-## Baseline failure (REPLACE WITH OBSERVED TRANSCRIPT)
+## Baseline failure (observed 2026-06-26)
 
-> This is the encoded failure *class* this skill prevents, not a captured transcript. Replace with
-> a real release-notes-gone-wrong transcript when one is observed.
+> Captured by running the task without this skill (a general-purpose agent, no project
+> conventions). The encoded failure class was confirmed.
 
-**Failure class encoded:** without this skill, "write release notes for v1.4.0" produces:
+**Observed run.** Asked to write release notes from recent commit history, the naive agent
+invented a "v2.0.0" boundary that exists nowhere in the repo (no tag, no package version) and
+took the commit subjects' counts at face value as user-facing facts. It never consulted this
+`release-notes` skill or `changelog-from-commits`, and the "What's New" section is a lightly
+reworded commit dump rather than translated benefits:
 
-- A flattened commit log copied as the notes — `refactor(db): drop legacy column`,
-  `chore: bump deps` — in implementation terms no user can act on.
-- Entries describing the mechanism ("switched to cursor pagination") with no statement of the
-  benefit the reader gains or the impact on them.
-- A breaking change (renamed env var, dropped endpoint) listed as a plain bullet among new
-  features, so readers upgrade and break in production.
-- No upgrade steps: a migration shipped, but the notes never tell the reader what to run, in what
-  order, or how to roll back.
-- Leaked internals — internal ticket IDs, a private table name, or a real-looking key — pasted
-  straight from commit messages into reader-facing copy (Rule 9).
+```
+### Skills
+- Evaluated baselines for the testing, devops, and database skills (now 51/72).
+### Hooks
+- Two hook fixes for stability.
+```
+
+It also asserted a major-version bump while noting "No breaking changes" — a contradiction with
+no semver justification — and invented speculative upgrade steps (`git pull`, re-copy `.claude/`).
+
+**Failure class (confirmed).** Without this skill, release notes become a flattened, fabricated
+commit log: an unverified version and counts, internal commit subjects passed off as user
+benefits, no real audience translation, and an upgrade path guessed rather than grounded. Breaking
+changes and semver are hand-waved instead of derived from the actual change set.
 
 ## Examples
 

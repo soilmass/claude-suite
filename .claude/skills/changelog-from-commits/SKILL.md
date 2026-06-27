@@ -87,23 +87,33 @@ and documentation conventions; the product-voice pass on user-facing copy is a h
 - **Hands off:** the resolved bump and changelog text to the release/tag tooling; the
   changelog-policy fork (which types are user-facing) to `DECISIONS.md`.
 
-## Baseline failure (REPLACE WITH OBSERVED TRANSCRIPT)
+## Baseline failure (observed 2026-06-26)
 
-> This is the encoded failure *class* this skill prevents, not a captured transcript. Replace
-> with a real changelog-gone-wrong transcript when one is observed.
+> Captured by running the task without this skill (a general-purpose agent, no project
+> conventions). The encoded failure class was confirmed.
 
-**Failure class encoded:** without this skill, "generate a changelog since the last release"
-produces:
+**Observed run.** Asked to generate a changelog from the 4 commits since the initial commit,
+the naive agent invented a previous version out of thin air (no tag or `package.json` version
+exists) and declared a MINOR bump because `feat(...)` lines were present — without noticing
+that every `feat(baselines): ...` commit is internal QA churn (capturing baselines) with no
+user-visible change. It then listed that internal churn in the user-facing changelog and
+eyeballed the bodies for breaking changes rather than parsing `!`/`BREAKING CHANGE:` footers.
 
-- A breaking change written as `feat(api): change auth header` with a `BREAKING CHANGE:`
-  footer in the body — and the footer is dropped entirely from the output, so consumers get no
-  migration warning.
-- A guessed version bump (patch) when a `feat` is present and a breaking footer demands major.
-- `chore(deps)`, `ci:`, and `refactor:` commits listed alongside features in a consumer-facing
-  list, drowning the three changes anyone cares about.
-- One prose paragraph ("various fixes and improvements") instead of grouped, scannable bullets
-  with scopes and commit hashes.
-- The new entry overwriting or detached from prior entries, with a local-time or absent date.
+```
+## [0.2.0] - 2026-06-26
+### Features
+- **baselines:** Evaluated testing, devops, and database lifecycle skills — captured observed
+  baselines for 20 more skills (...). 51 of 72 skills now baselined.
+- **baselines:** Captured naive-run baselines for 12 more generative skills (...).
+NOTE: ... no prior git tag or package.json version exists, so the chosen version 0.2.0 ...
+are guesses.
+```
+
+**Failure class (confirmed).** Without this skill the bump is guessed from a fabricated
+previous version, internal `chore`/QA churn is paraded in a consumer-facing list, section
+headings are improvised instead of the stable ordered set, and BREAKING-CHANGE precedence is
+eyeballed rather than mechanically derived — exactly the dropped-breaking / wrong-bump /
+churn-leak failures this skill exists to prevent.
 
 ## Examples
 

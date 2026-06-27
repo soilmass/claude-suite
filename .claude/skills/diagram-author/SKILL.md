@@ -89,23 +89,31 @@ because a diagram that misstates trust boundaries teaches the wrong mental model
 - **Hands off:** non-obvious modeling/labeling choices to `DECISIONS.md`; perishable labels
   (versions, service names that date) to `perishable-refresh`.
 
-## Baseline failure (REPLACE WITH OBSERVED TRANSCRIPT)
+## Baseline failure (observed 2026-06-26)
 
-> This is the encoded failure *class* this skill prevents, not a captured transcript. Replace
-> with a real diagram-gone-wrong transcript when one is observed.
+> Captured by running the task without this skill (a general-purpose agent, no project
+> conventions). The encoded failure class was confirmed.
 
-**Failure class encoded:** without this skill, "draw the architecture" produces:
+**Observed run.** Asked to "draw the architecture," the naive agent produced a clean Markdown
+doc with an inline `flowchart TD` and a request-flow walkthrough — readable, but written from
+the stack *description* rather than verified against the repo. It never read `CLAUDE.md`,
+`DECISIONS.md`, or the skill, never opened `src/db/schema/`, `middleware.ts`, or the tRPC
+routers, and made no recorded decision about where the diagram lives or how it stays in sync.
+The diagram drew auth and ownership as a single concern instead of two distinct hops:
 
-- A diagram exported as a PNG or drawn in an external SaaS canvas, living outside the repo,
-  invisible in PR review, and stale within a sprint.
-- An ER diagram drawn from memory with invented columns and wrong cardinality (a one-to-many
-  shown as many-to-many), contradicting the actual Drizzle schema's relations.
-- The edge-runtime boundary absent — a diagram showing a long-lived DB pool or server-only
-  code in a client node, misrepresenting the fork-defining fact of the stack.
-- A sequence diagram that collapses authentication and ownership into one "auth" box, teaching
-  by picture that `protectedProcedure` alone is sufficient (Rule 2 violation as a mental model).
-- A real internal hostname or a key fragment baked into a node label (Rule 9), or a 50-node
-  diagram no reader can follow and no author will update.
+```mermaid
+    PROT -.->|auth context| CLERK
+    PROT -->|ctx.auth.userId| BIZ
+```
+
+`ctx.auth.userId` flows straight into business logic with no separate ownership-check arrow,
+and observability (OTel/Sentry), webhook paths, and env validation are simply absent.
+
+**Failure class (confirmed).** Unguided, the diagram is generated from prose knowledge of the
+stack, not derived from the actual code, so it cannot be trusted to match what ships and has no
+co-location or drift-check to keep it honest. It also collapses authentication and ownership
+into one box — teaching by picture that `protectedProcedure` alone is sufficient (Rule 2 as a
+mental model) — which is exactly the trust-boundary mistake this skill exists to prevent.
 
 ## Examples
 

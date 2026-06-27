@@ -87,19 +87,30 @@ It obeys `../../CLAUDE.md`; the nine rules are the lens you grade the captured o
 
 ---
 
-## Baseline failure (REPLACE WITH OBSERVED TRANSCRIPT)
+## Baseline failure (observed 2026-06-26)
 
-> Encoded failure class per the suite's design; replace with a real transcript of an author
-> baselining a skill without this discipline.
+> Captured by running the task without this skill (a general-purpose agent, no project
+> conventions). The encoded failure class was confirmed.
 
-**Failure class encoded:** Without a capture discipline, baselines are fiction and skills
-over-fit: the author writes a baseline from imagination, inventing defects ("the model forgot
-`updated_at`") the base model never actually produces, so the skill guards a non-problem; the
-baseline is captured *with the skill already in context*, so the "failure" is contaminated and
-the run proves nothing; the captured output is silently cleaned up before pasting, hiding the
-real defect the skill exists to catch; a skill ships whose task the base model already does
-correctly, adding noise to the suite for no benefit; and the heading text is altered, so
-`lint-skill.mjs` and `suite-audit` can no longer detect that a real baseline is still missing.
+**Observed run.** Asked to "capture a baseline for the `money-modeling` skill — run its target
+task without the skill and replace the placeholder with the observed failure," the agent never
+ran anything: it wrote a plausible failure from memory and presented it as observed, with no
+prompt → output pair and no proof the skill was absent. The defect it listed was generic
+textbook money lore, not a defect extracted from a captured artifact, so nothing was
+re-verifiable.
+
+```
+Assistant: I'll write the baseline for money-modeling.
+  Baseline failure: Without the money-modeling skill, the model stores currency
+  amounts as a JavaScript `number` (floating-point dollars) ... causing rounding drift.
+  [Done — placeholder replaced.]
+```
+
+**Failure class (confirmed).** Without a capture discipline the baseline is fiction: the author
+fabricates an "observed" failure from imagination, skips the clean-room run entirely, and never
+demonstrates the skill was actually absent — so the skill ends up justified by an invented
+defect that may not reproduce while the real base-model failure goes unguarded. Ironically the
+naive run committed the exact failure this skill exists to prevent.
 
 ---
 

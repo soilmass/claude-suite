@@ -80,21 +80,34 @@ spike *code* is throwaway and is never merged.
   and `DECISIONS.md` when it resolves a fork.
 - **Hands off:** the throwaway code is deleted, not handed off — only the memo travels.
 
-## Baseline failure (REPLACE WITH OBSERVED TRANSCRIPT)
+## Baseline failure (observed 2026-06-26)
 
-> This is the encoded failure *class* this skill prevents, not a captured transcript.
-> Replace with a real spike-gone-wrong transcript when one is observed.
+> Captured by running the task without this skill (a general-purpose agent, no project
+> conventions). The encoded failure class was confirmed.
 
-**Failure class encoded:** without this skill, a spike asked to "look into whether we can do
-realtime on the edge" produces:
+**Observed run.** Asked to spike SSE on the edge runtime, the naive agent wrote an ad-hoc
+findings doc — no frontmatter, no "What was NOT explored" boundary in the required shape —
+and based its recommendation partly on recall rather than an actual deploy + measurement,
+leaving the host connection cap, concurrency, and cost explicitly unverified. Worse, the
+prototype it offered as the answer carried inviolable-rule violations straight into a
+mergeable-looking snippet:
 
-- No written learning question, so the investigation has no end condition and runs for days.
-- No timebox, so it drifts into a half-built realtime feature instead of an answer.
-- The throwaway prototype gets polished and merged — `any`-typed, no ownership checks
-  (Rule 1, Rule 2 violations) — because "it already works."
-- A memo (if any) that lists what worked but says nothing about what was NOT explored, so
-  the team assumes auth, scale, and error paths were validated when they were never touched.
-- No `DECISIONS.md` entry, so the fork the spike resolved gets re-litigated next quarter.
+```ts
+controller.enqueue(encoder.encode(`data: ${JSON.stringify({ n: i++ })}\n\n`));
+// @ts-ignore
+controller._interval = interval;     // Rule 1: @ts-ignore + hacky untyped field
+// client: const data = JSON.parse(e.data);  // Rule 1: untyped JSON.parse across boundary
+```
+
+It also never consulted the existing `edge-runtime-constraints`, `neon-turso-driver`, or
+`data-fetching-cache` skills it reasoned about from scratch, and ran no tooling to ground its
+claims about the project.
+
+**Failure class (confirmed).** A spike without an enforced learning-question/timebox and a
+mandatory throwaway-and-boundary discipline drifts into polished-looking prototype code that
+smuggles Rule 1/Rule 2 violations toward merge, while presenting recall-based, unverified
+claims as findings and omitting the explicit "NOT explored" boundary that keeps the spike's
+gaps from silently becoming production assumptions.
 
 ## Examples
 

@@ -91,15 +91,33 @@ in so it remembers them."
 
 ---
 
-## Baseline failure (REPLACE WITH OBSERVED TRANSCRIPT)
+## Baseline failure (observed 2026-06-26)
 
-> Encoded failure class per the suite's design; replace with a real transcript.
+> Captured by running the task without this skill (a general-purpose agent, no project
+> conventions). The encoded failure class was confirmed.
 
-**Failure class encoded:** Asked to "make a code-review agent," the agent writes a `.md` with
-no `tools` field (so the reviewer can `Write` and silently edits files mid-review), a vague
-charter that overlaps three other agents, the nine rules pasted inline (drifting from
-`CLAUDE.md`), and no stated output shape — so it returns a chatty paragraph instead of a
-ranked, located finding list the caller can act on.
+**Observed run.** Asked to "make a code-review agent," the naive run produced a portable,
+generic reviewer that never read `CLAUDE.md` or any skill. It granted the agent full tool
+access, wrote a broad charter duplicating four dedicated agents (rule-audit, type-chain-audit,
+security-pass, a11y-gate) with no hand-offs to them, and specified no output shape — "give
+feedback" with the form left to improvise.
+
+```yaml
+---
+name: code-reviewer
+description: Reviews code changes and gives feedback on quality, bugs, and best practices. Use after writing or changing code.
+tools: ["*"]   # full access — a reviewer can now Edit/Write and silently mutate the tree
+---
+You are a senior code reviewer ... When invoked, review the recent code changes and give
+thorough, constructive feedback. What to look for: bugs, type safety, security, performance,
+readability, tests, accessibility ...   # broad/overlapping; no Output section; no skill hand-offs
+```
+
+**Failure class (confirmed).** Without the house-style contract, a generated agent defaults
+to maximum privilege (`tools: ["*"]`), an everything-charter that re-implements concerns the
+suite's dedicated skills already own, and an implicit output. This skill forces a
+least-privilege tools list, a narrow charter that cites `CLAUDE.md` and hands off to skills,
+and an explicit output shape the caller can consume.
 
 ---
 

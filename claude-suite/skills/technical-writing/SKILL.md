@@ -84,24 +84,31 @@ and observability/log-discipline conventions the prose must respect.
 - **Hands off:** decisions surfaced while writing to `DECISIONS.md`; perishable version claims
   to `perishable-refresh`.
 
-## Baseline failure (REPLACE WITH OBSERVED TRANSCRIPT)
+## Baseline failure (observed 2026-06-26)
 
-> This is the encoded failure *class* this skill prevents, not a captured transcript. Replace
-> with a real docs-gone-wrong transcript when one is observed.
+> Captured by running the task without this skill (a general-purpose agent, no project
+> conventions). The encoded failure class was confirmed.
 
-**Failure class encoded:** without this skill, "document the invoicing feature" produces:
+**Observed run.** Asked to document the project-sharing feature, the naive agent produced a
+plausible-looking page that fused an end-user UI walkthrough and a developer tRPC reference
+into one doc with no audience header, led with a thin "what it does" paragraph instead of the
+motivating problem, and — most damaging — fabricated every code example without reading the
+actual router or schema: invented procedure names, an unverified import path, made-up ID
+formats, and a guessed return shape, plus assumed facts (a 50-member cap, instant revocation)
+sourced from nothing.
 
-- Prose organized around the codebase — a section per file/module — instead of around the task
-  the reader came to finish ("create and send an invoice").
-- The why buried or absent: steps with no statement of the problem or the success state, so a
-  reader whose situation differs slightly cannot adapt.
-- Examples that look right but do not run — invented procedure names, `any`-typed handlers,
-  hardcoded hex in JSX, a `protectedProcedure` sample with no ownership check teaching Rule 2
-  violations by example.
-- Tutorial, how-to, and reference material fused into one undifferentiated page that serves no
-  reader well.
-- A real-looking API key pasted into a sample, or a secret referenced from a Client Component
-  (Rule 9), shipped as copyable example code.
+```ts
+const share = api.projectShare.add.useMutation({ /* invented router + path */ });
+share.mutate({ projectId: "proj_123", email: "teammate@example.com", role: "editor" });
+// members: { userId, email, role, addedAt }[]  ← guessed shape, never read from code
+```
+
+**Failure class (confirmed).** Without this skill, docs are written from imagination rather
+than from the codebase: audience goes unstated and reader types get blended, the why is
+buried under a feature blurb, and "illustrative" examples ship as fabricated, non-runnable
+code that can teach Rule 2 (ownership) and Rule 9 (secrets) violations by example. House
+style — the audience split, required section structure, and `references/` separation — is
+ignored entirely because no project file was consulted.
 
 ## Examples
 

@@ -87,25 +87,35 @@ still claim an old input shape, the wrong auth level, or errors the procedure no
 - **Hands off:** `security-pass` to confirm the published reference leaks no server-only detail
   (Rule 9), and `perishable-refresh` when documented tool/spec versions date.
 
-## Baseline failure (REPLACE WITH OBSERVED TRANSCRIPT)
+## Baseline failure (observed 2026-06-26)
 
-> This is the encoded failure *class*, not a captured transcript. Replace it with a real
-> transcript once one is observed.
+> Captured by running the task without this skill (a general-purpose agent, no project
+> conventions). The encoded failure class was confirmed.
 
-**Failure class encoded:** Without this skill, a hand-written API reference tends to ship with:
+**Observed run.** Asked to document the `projectRouter` (list/create/rename), the naive agent
+produced a polished hand-written Markdown reference — by *reading the code and retyping it*. It
+re-rendered each Zod constraint as a second copy in a Markdown table, eyeballed the error codes,
+and guessed the wire shape of timestamps. The input docs are a parallel copy of the schema, not a
+projection of it:
 
-- an input section retyped from memory that omits a field added to the Zod schema last week, so
-  integrators send payloads the procedure rejects (drift from the shared schema, Rule 8).
-- every endpoint labeled "requires auth" with no distinction between `publicProcedure` and
-  `protectedProcedure`, and no mention that a protected, user-owned read returns `NOT_FOUND`
-  for someone else's row (Rule 2).
-- an error table copied from another API listing codes the procedure never throws, and missing
-  the `BAD_REQUEST` that input validation actually raises.
-- money documented as a decimal "price" and timestamps as "date" with no timezone, so consumers
-  mis-handle cents and local time (Rules 5, 6).
-- a server-only env var or internal table name pasted into an example payload (Rule 9).
-- no regeneration step, so the reference is correct the day it is written and wrong by the next
-  router change.
+```md
+- **Input:**
+  | field | type   | rules                |
+  |-------|--------|----------------------|
+  | name  | string | min 1, max 120, trimmed |
+| createdAt  | Date     | UTC  | ...the moment createProjectSchema changes, this table lies
+```
+
+There was no CI drift check, no derivation from `createProjectSchema`/`renameProjectSchema`, the
+error table was enumerated from squinting at the code (it admitted likely missing
+`INTERNAL_SERVER_ERROR` and guessing `BAD_REQUEST` without checking the errorFormatter), and the
+ownership guarantee Rule 2 requires was noted only superficially for `rename`.
+
+**Failure class (confirmed).** A reference written by retyping the code is a *second copy* of the
+inputs, auth, and error codes — it drifts silently the instant a Zod schema or procedure changes,
+and nothing fails the build to catch it. This skill exists to make the reference a derived
+projection (inputs from the shared schema, errors enumerated from `TRPCError` codes, a CI sync
+gate) rather than a hand-maintained parallel artifact.
 
 ## Examples
 

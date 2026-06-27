@@ -86,22 +86,34 @@ decision-record discipline.
 - **Feeds:** a repo's first-contributor and first-consumer experience; the entry point
   every other doc hangs off.
 
-## Baseline failure (REPLACE WITH OBSERVED TRANSCRIPT)
+## Baseline failure (observed 2026-06-26)
 
-> This is the encoded failure *class*, not a captured transcript. Replace it with a real
-> session once one is observed.
+> Captured by running the task without this skill (a general-purpose agent, no project
+> conventions). The encoded failure class was confirmed.
 
-**Failure class encoded:** without this skill, a generated README ships with these defects:
-- Opens with a paragraph of background or a row of badges, so the reader scrolls before
-  ever learning what the project is or whether it is for them.
-- A quickstart that was never run — missing a prerequisite, a wrong package name, or an
-  install step that fails — so the first thing a new user experiences is a broken command.
-- Inlines the entire API and config reference, becoming a second, stale copy of the real
-  docs that drifts the moment the code changes.
-- No statement of runtime/version assumptions (e.g. edge-runtime constraints), so users on
-  an unsupported setup hit confusing failures.
-- A flat slab of prose with no scannable headings, no usage example, and no links out to
-  contributing, license, or deeper docs.
+**Observed run.** Asked to write the README for this very `claude-suite` package, the naive
+agent never read `CLAUDE.md`, `DECISIONS.md`, the existing 9KB `README.md`, or any primitive
+source — it inferred everything from filenames and a quick `ls`, then wrote a fresh README
+that ignored the existing curated one and invented unverified facts (an install method, a
+license, primitive counts):
+
+```md
+## Install
+This is a configuration package, not an npm dependency. Copy the `.claude/` directory ...
+cp -r .claude /path/to/your-app/
+## License
+MIT (or your project's license).
+```
+
+By its own admission it described hooks as active when memory notes say they are opt-in/inactive,
+guessed command-to-skill mappings, and reported counts ("82 skills, 16 agents") it never
+cross-checked. It also missed the house-style structure of the primitives entirely.
+
+**Failure class (confirmed).** Without this skill the agent writes a plausible README from
+filenames and assumptions instead of from the repo's source of truth: it overwrites rather
+than updates an existing curated README, invents install/license/version facts it never
+verified, and ships counts and behavior claims that are wrong. A README that confidently
+misstates how the project works is worse than none.
 
 ## Examples
 

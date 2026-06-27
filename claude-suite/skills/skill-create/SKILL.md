@@ -102,17 +102,33 @@ one"; "two skills doing similar things is fine."
 
 ---
 
-## Baseline failure (REPLACE WITH OBSERVED TRANSCRIPT)
+## Baseline failure (observed 2026-06-26)
 
-> Encoded failure class per the suite's design; replace with a real run-without-the-skill
-> transcript before treating this as evaluated.
+> Captured by running the task without this skill (a general-purpose agent, no project
+> conventions). The encoded failure class was confirmed.
 
-**Failure class encoded:** Asked to "make a skill for X," the agent free-forms a markdown
-file: frontmatter missing `Use when:`/`Do NOT use for:` (so it never triggers reliably), an
-`allowed-tools` field copied from some other tool's docs, sections in an ad-hoc order, the
-rules restated inline (so they drift from `CLAUDE.md`), no `references/` split (a 400-line
-body that costs tokens on every trigger), no baseline section, and a slug that collides with
-an existing skill. It looks like a skill and loads, but it doesn't behave like one.
+**Observed run.** Asked to author a skill for edge-compatible tRPC rate limiting, the naive
+agent produced a working `SKILL.md` that ignored every house-style contract: the frontmatter
+had no `Use when:` / `Do NOT use for:` trigger surface, the body used ad-hoc headings instead
+of the fixed ten-section order, nothing was factored into `references/`, there was no baseline
+section, and it never deferred to `CLAUDE.md` or composed with obvious siblings
+(`trpc-middleware`, `env-validation`, `neon-turso-driver`). The frontmatter it emitted:
+
+```yaml
+---
+name: rate-limit-trpc
+description: How to add rate limiting to tRPC procedures on the edge runtime.
+---
+```
+
+It also picked a vendor (Upstash) without recording it as a fork in `DECISIONS.md`, and read
+`x-forwarded-for` and env vars without Zod-parsing them (Rule 8).
+
+**Failure class (confirmed).** Free-formed from an imagined contract, the output looks like a
+skill and loads, but it does not behave like one: an unparseable trigger surface so it never
+selects reliably, a drifting body shape, rules and tool choices restated or chosen silently
+instead of pointing at `CLAUDE.md`/`DECISIONS.md`, and no composition with the siblings that
+already own half its job. This skill exists to make all of that mechanical.
 
 ---
 

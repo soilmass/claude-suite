@@ -104,18 +104,30 @@ the dep.
 
 ---
 
-## Baseline failure (REPLACE WITH OBSERVED TRANSCRIPT)
-> Encoded failure class, not a captured transcript; replace once observed in the wild.
+## Baseline failure (observed 2026-06-26)
 
-**Failure class encoded:** Asked "should we use X," the agent reads the README, notes the star
-count, and says yes. Concrete defects that ship: (1) the library imports `fs`/`crypto` (Node) or
-opens a persistent socket, so it compiles locally but the edge build fails or throws at runtime —
-the disqualifier was never checked; (2) it is chosen over a Web-standard primitive (`Intl`,
-`crypto.subtle`, `URL`) that needed no dependency at all; (3) its core function returns `any`,
-silently breaking the type chain (Rule 1) with no Zod parse at the boundary (Rule 8) flagged;
-(4) it whole-imports a non-tree-shakeable barrel that lands in the client/edge bundle and is paid
-twice; (5) it is AGPL/BSL or last released two years ago with open CVEs, and none of that surfaced
-because the evaluation was a vibe, not a gated checklist.
+> Captured by running the task without this skill (a general-purpose agent, no project
+> conventions). The encoded failure class was confirmed.
+
+**Observed run.** Asked to evaluate `moment` for date handling, the naive agent produced a
+well-argued blog-post verdict — recommend against, prefer `date-fns` + native `Intl` — but
+reached it by vibe, not by a gated checklist. It never read `CLAUDE.md`, `DECISIONS.md`, or this
+skill, so it skipped the required structure and recorded nothing in `DECISIONS.md`; its bundle
+numbers and the "2020 maintenance mode" claim were quoted from memory with no dated primary
+source; and it asserted edge fitness loosely without separating "runs at the edge" from "too
+heavy for the edge bundle":
+
+```
+**Bundle cost — this is the big one for an edge app.**
+- Moment is large: ~290KB minified (~70KB gzipped) for the full build...
+| **date-fns** | ~few KB (per-fn import) | Yes | Yes | Excellent | Yes |
+```
+
+**Failure class (confirmed).** The agent landed a plausible recommendation while skipping the
+gates that make it trustworthy: no edge-vs-bundle disqualifier separation, no dated primary
+evidence (perishable facts from memory), no weighted criteria pinned before evidence, and no
+`DECISIONS.md` record. A right-sounding verdict built on unverified numbers and ad-hoc weighting
+is exactly the failure this skill's five-gate checklist prevents.
 
 ---
 

@@ -111,20 +111,31 @@ caching strategy), checking `DECISIONS.md` first so a settled fork is never reop
 
 ---
 
-## Baseline failure (REPLACE WITH OBSERVED TRANSCRIPT)
+## Baseline failure (observed 2026-06-26)
 
-> This is the encoded failure class, not a captured transcript. Replace it after running the
-> task without the skill and recording what the agent actually does.
+> Captured by running the task without this skill (a general-purpose agent, no project
+> conventions). The encoded failure class was confirmed.
 
-**Failure class encoded:** Asked to "research options for our background-job system," the agent
-silently picks the option it already favors and writes a brief arguing *for* it — motivated
-reasoning, criteria invented after the conclusion. It evaluates **one** option deep, mentions
-rivals in a sentence each, with **no status-quo "do nothing" option**. Evidence is undated blog
-posts and a maintainer's marketing claim treated as equal to a benchmark, and nothing is checked
-against the **edge-runtime constraint**, so a TCP-only candidate survives to the recommendation.
-It never greps `DECISIONS.md`, re-researching a fork the project already closed. It collapses the
-matrix to one 1–10 score, hiding *where* options differ, and asserts a fake-certain "use X" with
-no reversibility call — handing `draft-adr` a conclusion to rubber-stamp, not a decision to make.
+**Observed run.** Asked to research client-state options, the agent produced a polished
+"Zustand vs React Context" comparison doc that never read `CLAUDE.md`/`DECISIONS.md` (so it
+couldn't tell if the fork was already settled), seriously weighed only **two** options with no
+status-quo entry, and wrote the comparison table and recommendation together — criteria invented
+*after* the conclusion. Evidence was from memory with no dates or sources, and reversibility was
+asserted, not analyzed:
+
+```
+## Reversibility
+Both are pretty easy to swap later since usage is hook-based behind a custom
+hook; migrating a slice from Context to Zustand or back is a localized change ...
+```
+
+**Failure class (confirmed).** Decision research drifts into motivated reasoning: a favored
+option is chosen first, then a confirming brief is written with post-hoc criteria, an
+under-populated non-MECE option set, undated uncited evidence, and a hand-waved one-way-vs-
+two-way-door call. It hands the ADR author a conclusion to rubber-stamp, not a dossier to
+decide from. This skill prevents it by pinning weighted criteria before evidence, forcing a
+MECE option set with the status quo, and demanding dated primary evidence and an explicit
+reversibility classification.
 
 ---
 

@@ -75,17 +75,32 @@ It enforces the contract defined in `../../docs/house-style.md` and obeys `../..
 
 ---
 
-## Baseline failure (REPLACE WITH OBSERVED TRANSCRIPT)
+## Baseline failure (observed 2026-06-26)
 
-> Encoded failure class per the suite's design; replace with a real transcript.
+> Captured by running the task without this skill (a general-purpose agent, no project
+> conventions). The encoded failure class was confirmed.
 
-**Failure class encoded:** Without a suite-wide audit, the distribution rots invisibly: a skill
-renamed to `n1-hunter` while three siblings still point to `nplus1-hunter` (hand-offs that go
-nowhere), a `code-review` agent shipped with `Write` in its tools (a "review" that edits the
-tree), `vertical-slice` and a new skill both claiming the trigger `"build the feature"` (so
-neither triggers reliably), an agent missing its `## Output` section (so it returns prose
-instead of a finding list), and a `composition-map.md` that still lists deleted primitives —
-each invisible until a user hits it.
+**Observed run.** Asked to audit `.claude/` for consistency, the naive agent skipped this
+skill and reverse-engineered "correct" from the existing `lint-skill.mjs` rather than the
+documented house style. It ran the linter across all 82 skills and surfaced a real off-by-one
+defect — every skill's `source_of_truth` resolves to a file that does not exist — but reported
+it as free-text prose and never confirmed whether the path was a bug or an install-layout
+artifact.
+
+```
+=== FINDING 1 (significant; affects ALL 82 skills) — broken source_of_truth ===
+Every SKILL.md declares: source_of_truth: ../../CLAUDE.md
+For a file at .claude/skills/<skill>/SKILL.md, ../../CLAUDE.md resolves to
+.claude/CLAUDE.md, which DOES NOT EXIST. The real file is one level higher.
+Result: the canonical linter emits one finding per skill for 82/82 skills.
+```
+
+**Failure class (confirmed).** Without a suite-wide audit grounded in the documented contract,
+the agent mistakes whatever the existing tooling encodes for the spec, checks only structural
+conformance (never content quality, the references/scripts split, or exhaustive cross-references),
+and emits prose instead of a triaged, structural-then-warning finding list — so real breakages
+like a path that fails on every primitive are reported without resolution and lesser rot stays
+invisible.
 
 ---
 

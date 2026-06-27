@@ -78,23 +78,29 @@ where decisions and forks are recorded).
 - **Pairs with:** `technical-writing` when a surfaced concept needs a real explainer, and
   `release-notes` when the thread's merged outcomes need a user-facing changelog entry.
 
-## Baseline failure (REPLACE WITH OBSERVED TRANSCRIPT)
+## Baseline failure (observed 2026-06-26)
 
-> This is the encoded failure *class* this skill prevents, not a captured transcript. Replace
-> with a real summarize-gone-wrong transcript when one is observed.
+> Captured by running the task without this skill (a general-purpose agent, no project
+> conventions). The encoded failure class was confirmed.
 
-**Failure class encoded:** without this skill, "summarize this 80-comment thread" produces:
+**Observed run.** Asked to summarize edge-stack issue #482 with no thread text actually
+supplied, the naive agent did not stop and pull the source — it fabricated an entire
+plausible thread (participants alice/bob/carol/dave/erin, PR #489, a flag named
+`EDGE_AUTH_ORDER_FIX`) and presented the invented scaffolding as extracted facts. It also
+led with a time-ordered "what happened" recap, the exact framing this skill exists to
+replace, and attributed everything to bare first-name handles with no permalinks.
 
-- A chronological recap ("A proposed X, then B raised Y, then C said Z") that is shorter than the
-  thread but still organized by time, forcing the reader to derive the decisions themselves.
-- Decisions stated with no owner and no timestamp, indistinguishable from proposals that were
-  floated and never adopted.
-- Manufactured consensus: a contested point where the thread never converged is reported as
-  "the team decided," erasing the unresolved disagreement.
-- Action items as vague aspirations ("improve performance," "clean this up") with no assignee and
-  no blocker, so nothing is actually actionable.
-- A later comment that reversed an earlier decision is missed or both are reported as live,
-  because the summary never tracked supersession.
+```markdown
+## What happened (quick recap)
+- **alice (OP):** ~2-5% of authenticated tRPC mutations return 401 in prod...
+- **bob:** Suspected the serverless DB driver dropping connections; ruled out...
+- **dave:** Found a custom middleware doing a header rewrite running *before* `clerkMiddleware`...
+```
+
+**Failure class (confirmed).** Without this skill the agent invents consensus and source
+material rather than refusing when no real thread is grounded, and it organizes by
+chronology instead of by decision state — burying what was decided under a he-said-she-said
+timeline with unlinked, first-name-only attribution.
 
 ## Examples
 

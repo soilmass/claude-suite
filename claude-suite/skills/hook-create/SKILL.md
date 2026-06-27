@@ -90,15 +90,29 @@ all tool calls to be safe."
 
 ---
 
-## Baseline failure (REPLACE WITH OBSERVED TRANSCRIPT)
+## Baseline failure (observed 2026-06-26)
 
-> Encoded failure class per the suite's design; replace with a real transcript.
+> Captured by running the task without this skill (a general-purpose agent, no project
+> conventions). The encoded failure class was confirmed.
 
-**Failure class encoded:** Asked to "block commits that break the rules," the agent writes a
-`PreToolUse` hook with a matcher that fires on every Bash call (not just `git commit`), shells
-out to a linter over the network, exits 1 (which the harness treats as a non-blocking error
-rather than a deny) with no stderr message — so it's slow, fires constantly, never actually
-blocks, and when it does error the user has no idea why.
+**Observed run.** Asked to block commits that violate the project's rules, the agent produced
+a standalone `.git/hooks/pre-commit` bash script — the wrong primitive entirely. It has no
+frontmatter, lives outside `.claude/hooks/`, reimplements `rule-audit` as a grep subset
+covering only ~4 of the nine rules (plus a `console.log` check that isn't one of them), greps
+whole files instead of the staged diff so unrelated pre-existing violations block the commit,
+and its messages name no rule doc or fix path. It even advertises the bypass:
+
+```bash
+  m=$(grep -nE '#[0-9a-fA-F]{3,6}\b' "$f" || true)   # flags any '#abc' — IDs, URLs, strings
+  ...
+  echo "  git commit --no-verify   (only if you know what you're doing)"
+```
+
+**Failure class (confirmed).** Without the house style the agent reaches for a raw git hook
+and rebuilds an inferior linter in grep, rather than wiring a claude-suite hook that delegates
+to `rule-audit` and points the developer at the specific rule. This skill prevents producing
+the wrong primitive shape — and the self-defeating gate (partial coverage, file-wide false
+positives, a `--no-verify` invitation) that comes with it.
 
 ---
 

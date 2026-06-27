@@ -100,18 +100,34 @@ thing under test. It does not interpret prod vitals (`perf-budget-check`) or exp
 
 ---
 
-## Baseline failure (REPLACE WITH OBSERVED TRANSCRIPT)
-> Encoded failure class, not a captured transcript; replace once observed in the wild.
+## Baseline failure (observed 2026-06-26)
 
-**Failure class encoded:** Asked "is Turso faster than Neon for our query," the agent writes a
-script that runs each driver once on localhost and reports the raw `Date.now()` delta as the
-answer. Concrete defects that ship: (1) a single run with no warmup, so the loser merely paid
-the one-time connection/JIT cost; (2) the mean of a handful of runs over a right-skewed latency
-distribution, hiding the p95 that actually matters; (3) measured on localhost, so neither edge
-cold-start, region, nor the HTTP driver — the entire point — is exercised; (4) the query
-results discarded, letting the engine dead-code-eliminate the work being "timed"; (5) no
-recorded environment (versions, region, row count, date), so the number is unreproducible and
-the "decision" cannot be re-checked when the drivers change (`perishable-refresh`).
+> Captured by running the task without this skill (a general-purpose agent, no project
+> conventions). The encoded failure class was confirmed.
+
+**Observed run.** Asked which is faster — one Drizzle relational query or two stitched queries
+— the naive agent produced a standalone `tsx` script that times each approach over 50 sequential
+iterations against the live DB and reports only the average ms/op. It has one warmup call but
+no variance, no percentiles, no recorded environment, and no correctness check that the two
+paths return equivalent data before timing them. The verdict collapses to a single skewed mean:
+
+```ts
+const total = performance.now() - start;
+const avg = total / ITERATIONS;
+console.log(`${label}: ${avg.toFixed(2)} ms/op  (${ITERATIONS} iters, ${total.toFixed(0)} ms total)`);
+// ...
+const faster = a < b ? "relational" : "two queries";
+const ratio = (Math.max(a, b) / Math.min(a, b)).toFixed(2);
+console.log(`\n=> ${faster} is faster by ${ratio}x`);
+```
+
+**Failure class (confirmed).** The benchmark reports the mean of a right-skewed, network-bound
+distribution, so tail latency and run-to-run variance are invisible and a handful of slow runs
+silently decide the winner. Nothing is reproducible: no fixed dataset/row count, no recorded
+environment (driver, edge vs node, region, hardware, date), and no edge-representative driver
+despite the stack deploying to the edge — so the call cannot survive scrutiny or land in
+`DECISIONS.md` as written. This skill forces a stated hypothesis, an isolated variable, a
+correctness check, p50/p95/p99 with variance, and a recorded environment.
 
 ---
 

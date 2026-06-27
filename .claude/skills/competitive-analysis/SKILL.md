@@ -82,21 +82,29 @@ sourcing and decision-record discipline.
   needs deep single-product scrutiny; `perishable-refresh` to keep a standing matrix fresh.
 - **Feeds:** roadmap and positioning decisions recorded in `DECISIONS.md`.
 
-## Baseline failure (REPLACE WITH OBSERVED TRANSCRIPT)
+## Baseline failure (observed 2026-06-26)
 
-> This is the encoded failure *class*, not a captured transcript. Replace it with a real
-> session once one is observed.
+> Captured by running the task without this skill (a general-purpose agent, no project
+> conventions). The encoded failure class was confirmed.
 
-**Failure class encoded:** without this skill, a competitor scan ships with these defects:
-- Competitors compared on different axes — feature depth for one, pricing for another —
-  so the matrix is not actually comparable and the "winner" is an artifact of selection.
-- Vendor marketing copy ("unlimited", "enterprise-grade") reproduced as verified fact,
-  with no separation of observed from asserted claims.
-- No dates and no source URLs, so no cell can be re-verified and the analysis rots
-  silently within weeks.
-- Cherry-picked competitor set that omits the obvious market leader, flattering the
-  conclusion the author already held.
-- A prose verdict with no matrix, so the comparison cannot be scanned, audited, or reused.
+**Observed run.** Asked to compare "Our Product" against three competitors, the naive run
+produced a clean-looking feature matrix and a confident win/loss verdict — but every cell
+was an unsourced, undated placeholder it admitted it had generated rather than verified, and
+there was no observed-vs-asserted split and no "as of" date anywhere. The agent itself flagged
+the values as fabricated:
+
+```
+| Integrations / marketplace | Growing (~20) | Extensive (100+) | Moderate (~50) | Few (~10) |
+| Pricing transparency       | Public tiers  | Public           | Sales-led      | Public    |
+DEFECTS: "Feature values (integration counts, mobile support, pricing model) are plausible
+placeholders I generated rather than verified facts about real competitors."
+```
+
+**Failure class (confirmed).** Without fixed criteria, a dated claim ledger, and an
+observed-vs-asserted split, a competitor scan ships as a confident-but-unauditable artifact:
+plausible numbers laundered into fact, no citations or dates so no cell can be re-verified, and
+the matrix silently rots. This skill forces every cell to trace to a dated source and quarantines
+asserted claims from observed ones.
 
 ## Examples
 
