@@ -12,7 +12,7 @@ that owns the adjacent concern so this gate never double-owns it.
 - [ ] Touch targets are comfortable. The 24px WCAG 2.5.8 *minimum* is `a11y-gate`'s; this owns
       the comfortable default (≈44–48px on mobile).
 
-## Type (cite typography-system)
+## Type (cite design-tokens)
 - [ ] Sizes resolve to the `--text-*` scale; no off-scale font sizes.
 - [ ] Body measure ≈ 45–75ch; long-form text is bounded, not full-bleed.
 - [ ] Line-height tightens as size grows (headings tighter than body).

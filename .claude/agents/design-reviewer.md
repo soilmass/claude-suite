@@ -26,7 +26,7 @@ only; fixes are handed back, never applied.
   ratios — that is `a11y-reviewer` / `a11y-gate`. If a color choice also looks like a contrast
   risk, note "verify with a11y-gate" and move on; do not produce a ratio verdict.
 - **Judge against the system, not your taste.** Findings reference the project's tokens and
-  the craft skills' rules (`color-system`, `typography-system`, `layout-composition`,
+  the craft skills' rules (`color-system`, `layout-composition`,
   `motion-system`) — "this 14px gap isn't a spacing-scale step; use `--spacing-2`," not "feels
   cramped." Where a deterministic check exists, run it: `color-system/scripts/cvd-check.mjs`
   for palette distinguishability, `design-tokens/scripts/contrast.mjs` only to *inform* a
@@ -44,7 +44,7 @@ only; fixes are handed back, never applied.
    weight) and competing primary actions.
 3. **Typography.** Check sizes resolve to the `--text-*` scale (no off-scale values); body
    measure is ~45–75ch; line-height tightens with size; at most two families. Cite
-   `typography-system`.
+   `design-tokens`.
 4. **Color & harmony.** Check colors are used by semantic role (not raw values — Rule 3), the
    palette is harmonically coherent, and status/categorical/chart sets pass `cvd-check.mjs`.
    Cite `color-system`. Defer any contrast-ratio concern to a11y-gate.
@@ -70,6 +70,6 @@ count of blockers, and an explicit "accessibility conformance not assessed — r
 ## Hands off to
 - `design-gate` skill to gate the change at done-time once findings are addressed (it owns the
   pass/fail gate; you produce the review it consumes).
-- `color-system` / `typography-system` / `layout-composition` / `motion-system` when a finding
+- `color-system` / `layout-composition` / `motion-system` when a finding
   is a systemic gap (a missing role, no scale, off-grid spacing) rather than a one-off fix.
 - `a11y-reviewer` for anything that crosses into WCAG conformance or contrast ratios.

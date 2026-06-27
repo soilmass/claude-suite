@@ -129,7 +129,7 @@ the UI; the UI's types must come *from* the chain, not be invented at the leaf.
   it uses). Both are inputs, not things this skill produces from scratch.
 - **Feeds:** `rule-audit`, `a11y-gate`, `security-pass`, `design-gate` — its output is what
   they inspect. It also **consumes** the four craft skills (`color-system`,
-  `typography-system`, `layout-composition`, `motion-system`) via the `design-tokens` it builds on.
+  `design-tokens`, `layout-composition`, `motion-system`) via the `design-tokens` it builds on.
 - **Pairs with:** `refactor` — `vertical-slice` creates, `refactor` evolves; the two
   core daily-loop skills.
 - **Hands off:** non-trivial schema → `schema-design`; any migration the model change
