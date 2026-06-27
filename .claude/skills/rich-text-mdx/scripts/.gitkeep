@@ -1,0 +1,3 @@
+# reserved — see SKILL.md (kept empty intentionally per building-skills standard structure).
+# A check would justify itself here only as a grep for dangerouslySetInnerHTML fed by stored/user
+# content without a sanitizer, or rehype-raw on an untrusted-markdown path.
