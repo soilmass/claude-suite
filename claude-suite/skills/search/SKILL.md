@@ -19,7 +19,7 @@ description: >
 license: Apache-2.0
 metadata:
   version: "0.1"
-  source_of_truth: ../../../CLAUDE.md
+  source_of_truth: ../../CLAUDE.md
   changelog: >
     v0.1 — initial draft. Encodes the search failure class on edge Postgres: `LIKE`/`ILIKE
     '%q%'` passed off as search (unindexable scan, no ranking, no typo tolerance), a tsvector or
