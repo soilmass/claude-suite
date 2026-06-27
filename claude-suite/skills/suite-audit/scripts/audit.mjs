@@ -34,7 +34,7 @@ const FOUNDATION = new Set([
   "t3-genesis", "design-tokens", "schema-design", "vertical-slice", "refactor",
   "migration-author", "rule-audit", "a11y-gate", "security-pass", "perishable-refresh",
   "deep-research", "draft-adr", "draft-conventional-commit", "optimization-loop",
-  "draft-launch-comms", "draft-runbook", "draft-change-request",
+  "draft-launch-comms", "draft-runbook", "draft-change-request", "bisect",
 ]);
 
 let structural = 0;

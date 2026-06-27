@@ -42,13 +42,13 @@ plugin with `.claude-plugin/marketplace.json`.
 auto-update. A bundled `CLAUDE.md` ships with the suite so it stays self-contained.
 **Decided by:** human (AskUserQuestion)
 
-## 2026-06-26 — Existing 11 foundation skills are not moved
+## 2026-06-26 — Existing 10 foundation skills are not moved
 **Decision:** The parent repo's existing `.claude/skills/` (t3-genesis, design-tokens,
 schema-design, vertical-slice, refactor, migration-author, rule-audit, a11y-gate,
 security-pass, perishable-refresh) are left untouched. `claude-suite` adds new primitives
 that compose with them by name.
 **Context:** The suite extends, rather than replaces, the established foundation.
-**Rationale:** Moving the 11 risks breaking the working setup and creating a second source
+**Rationale:** Moving the 10 risks breaking the working setup and creating a second source
 of truth. The new primitives reference the foundation skills as siblings.
 **Consequences:** A few suite skills (e.g. `type-chain-audit`, `code-review`) deliberately
 overlap-and-extend a foundation skill; each states the boundary in its "When NOT to Use."
