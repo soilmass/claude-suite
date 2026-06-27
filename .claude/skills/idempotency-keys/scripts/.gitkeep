@@ -1,0 +1,1 @@
+Reserved. Would justify a script: a static check flagging an effectful mutation (external charge/provider call, or insert of a money/state row) in a protectedProcedure that never claims an idempotency key — an unguarded retryable effect.
