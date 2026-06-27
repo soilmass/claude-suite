@@ -98,7 +98,7 @@ aggregator" job that `needs:` all gates and itself is the single required check.
 pattern is cleanest at scale:
 ```yaml
   gates-passed:
-    needs: [typecheck, lint, rule-audit, coverage, a11y, perf-budget, deps]
+    needs: [typecheck, lint, rule-audit, coverage, a11y, perf-budget, deps, secret-scan, visual]
     if: always()
     runs-on: ubuntu-latest
     steps:

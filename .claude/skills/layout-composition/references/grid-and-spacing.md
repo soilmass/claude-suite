@@ -42,8 +42,9 @@ A geometric-ish scale, not a linear one — perceived spacing needs bigger jumps
   4–6 for simpler content sites. More columns ≠ better; they buy flexibility you may not use.
 - **Gutters and outer margins are scale steps** (e.g. 16/24 gutters, 24–64 margins), tightening
   with density and loosening on marketing surfaces.
-- **Content max-width tied to the measure.** Cap text containers at ≈60–75ch so lines stay
-  readable; the *page* can be wider than the *text*. This binds to `design-tokens`'s measure.
+- **Content max-width tied to the measure.** Cap text containers at the measure `design-tokens`
+  owns (≈45–75ch) so lines stay readable; the *page* can be wider than the *text*. Reference that
+  one value — don't restate a different range here.
 
 ## Grid vs Flexbox vs container queries
 
