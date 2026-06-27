@@ -1,0 +1,7 @@
+# reserved / empty for now.
+# A script would be justified only by a mechanical image-markup check: a raw `<img ` used for
+# content, a `next/image` with neither `width`/`height` nor `fill`, or more than one `priority`
+# per route. The blocker is false positives — the check must tell a content image from a
+# decorative/icon one, and the "always-sized" rule is perf-adjacent rather than one of the nine.
+# Add one here only once that content/decorative distinction is reliable and no sibling
+# (rule-audit Rule 3/4) already owns it. This skill is image-pipeline judgment, not a lint.
