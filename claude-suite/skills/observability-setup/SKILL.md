@@ -18,7 +18,7 @@ metadata:
     v0.1 — initial draft. Encodes the "observability that leaks, lies, or never fires" failure
     class: the Sentry auth token shipped client-side, traces that die at the edge boundary,
     100%-sampled spans, and errors with no release so nothing is attributable.
-    Baseline section is the encoded failure class; replace with an observed transcript.
+    Baseline observed (clean-room capture).
 ---
 
 # observability-setup

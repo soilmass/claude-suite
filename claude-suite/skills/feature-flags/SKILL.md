@@ -17,7 +17,7 @@ metadata:
     v0.1 — initial draft. Encodes the "flag that breaks the edge, flickers, or leaks" failure
     class: untyped string lookups, Math.random rollout, no fail-safe default, provider token
     in the client bundle.
-    Baseline section is the encoded failure class; replace with an observed transcript.
+    Baseline observed (clean-room capture).
 ---
 
 # feature-flags

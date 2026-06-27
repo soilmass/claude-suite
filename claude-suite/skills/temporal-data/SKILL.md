@@ -17,8 +17,7 @@ metadata:
   changelog: >
     v0.1 — initial draft. Encodes the local-time / naive-timestamp failure class:
     `timestamp` without timezone, server-side zone conversion, string dates, and ad-hoc
-    range/recurrence handling. Baseline section is the encoded failure class; replace with
-    an observed transcript.
+    range/recurrence handling. Baseline observed (clean-room capture).
 ---
 
 # temporal-data

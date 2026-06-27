@@ -18,7 +18,7 @@ metadata:
     v0.1 — initial draft. Encodes the untestable-procedure failure class: logic inlined in a
     procedure so the only test mocks db + Clerk, float-tolerant money assertions, and clockless
     time-dependent tests that pass today and fail at a month boundary.
-    Baseline section is the encoded failure class; replace with an observed transcript.
+    Baseline observed (clean-room capture).
 ---
 
 # vitest-unit

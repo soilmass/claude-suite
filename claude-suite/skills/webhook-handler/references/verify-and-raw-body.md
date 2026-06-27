@@ -85,7 +85,8 @@ async function verifyGithub(raw: string, header: string | null, secret: string) 
     { name: "HMAC", hash: "SHA-256" }, false, ["sign"],
   );
   const mac = await crypto.subtle.sign("HMAC", key, enc.encode(raw));
-  const expected = "sha256=" + Buffer.from(mac).toString("hex");
+  // Buffer isn't guaranteed at the edge — hex-encode the bytes with Web APIs only.
+  const expected = "sha256=" + [...new Uint8Array(mac)].map((b) => b.toString(16).padStart(2, "0")).join("");
   return constantTimeEqual(expected, header); // never `expected === header`
 }
 ```

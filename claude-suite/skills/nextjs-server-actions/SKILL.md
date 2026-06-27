@@ -17,8 +17,7 @@ metadata:
   changelog: >
     v0.1 — initial draft. Encodes the Server-Action failure class: untyped FormData
     crossing the boundary unvalidated, missing ownership on the action, and stale UI from
-    forgotten revalidation. Baseline section is the encoded failure class; replace with an
-    observed transcript.
+    forgotten revalidation. Baseline observed (clean-room capture).
 ---
 
 # nextjs-server-actions

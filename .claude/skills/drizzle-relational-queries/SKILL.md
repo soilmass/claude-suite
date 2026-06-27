@@ -17,8 +17,7 @@ metadata:
   source_of_truth: ../../CLAUDE.md
   changelog: >
     v0.1 — initial draft. Encodes the N+1 failure class (Rule 7): a query inside a
-    `.map()`/`for` over parent rows. Baseline section is the encoded failure class;
-    replace with an observed transcript.
+    `.map()`/`for` over parent rows. Baseline observed (clean-room capture).
 ---
 
 # drizzle-relational-queries

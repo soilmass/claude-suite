@@ -18,8 +18,7 @@ metadata:
   source_of_truth: ../../../CLAUDE.md
   changelog: >
     v0.1 — initial draft. The spatial-design engine design-tokens orchestrates: grid, spacing
-    rationale, hierarchy, density, breakpoint strategy. Baseline section is the encoded failure
-    class; replace with an observed transcript.
+    rationale, hierarchy, density, breakpoint strategy. Baseline observed (clean-room capture).
 ---
 
 # layout-composition

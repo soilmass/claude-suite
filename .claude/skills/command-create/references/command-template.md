@@ -19,18 +19,19 @@ Report the skill's self-audit / output verbatim.
 
 ```markdown
 ---
-description: Run all three definition-of-done gates on a path
+description: Run all four definition-of-done gates on a path
 argument-hint: "[path or diff]"
 allowed-tools: Bash(node:*), Read, Grep, Glob
 ---
 
-Run the done-time gate trio on: $ARGUMENTS
+Run the done-time gate quartet on: $ARGUMENTS
 
 1. Invoke `rule-audit` (run its scan.mjs, then the judgment pass).
 2. Invoke `a11y-gate`.
 3. Invoke `security-pass`.
+4. Invoke `design-gate`.
 
-Run all three even if an earlier one finds issues. Report findings grouped by gate, each
+Run all four even if an earlier one finds issues. Report findings grouped by gate, each
 ranked by severity. Do not auto-fix.
 ```
 

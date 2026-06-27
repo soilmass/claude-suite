@@ -17,8 +17,7 @@ metadata:
   changelog: >
     v0.1 — initial draft. Encodes the metadata-as-decoration failure class: hardcoded
     title/description strings, a static OG image, no canonical, no sitemap/robots, and absent or
-    page-mismatched JSON-LD. Baseline section is the encoded failure class; replace with an
-    observed transcript.
+    page-mismatched JSON-LD. Baseline observed (clean-room capture).
 ---
 
 # seo-metadata
@@ -65,7 +64,8 @@ row"; "the param comes from our own link."
 
 ## When NOT to Use
 
-- Probing ChatGPT/Perplexity/AI Overviews for ranking, citation rate, quote accuracy → `aeo-baseline`.
+- Probing ChatGPT/Perplexity/AI Overviews for ranking, citation rate, quote accuracy → `aeo-baseline`
+  (an optional external/global site-build skill, not bundled in this suite — wire it in if present).
 - The route file conventions, `generateMetadata` placement, server/client boundary → `nextjs-app-router`.
 - Defining or changing the Zod schema the metadata validates against → `zod-schema-library`.
 - Building the page's data → API → form → UI chain itself → `vertical-slice` (this annotates it).
@@ -108,7 +108,8 @@ row"; "the param comes from our own link."
   page's data layer that `vertical-slice` built.
 - **Pairs with:** `vertical-slice` — metadata is part of a page slice; build the slice there, then
   annotate it here so SEO traces the same type chain.
-- **Hands off:** AI answer-engine / GEO probing → `aeo-baseline`; alt text and visible-content a11y
+- **Hands off:** AI answer-engine / GEO probing → `aeo-baseline` (optional external skill, not part
+  of this suite); alt text and visible-content a11y
   of the page and OG image → `a11y-gate`; final verification → `rule-audit`, `security-pass`.
 - **Runs against:** `../../CLAUDE.md` — App Router only, edge runtime, the unbroken type chain.
 

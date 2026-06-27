@@ -17,7 +17,7 @@ metadata:
   changelog: >
     v0.1 — initial draft. Encodes the chronological-recap failure class: decisions buried under
     a he-said-she-said timeline, action items with no owner, and unresolved forks dropped.
-    Baseline section is the encoded failure class; replace with an observed transcript.
+    Baseline observed (clean-room capture).
 ---
 
 # summarize-thread

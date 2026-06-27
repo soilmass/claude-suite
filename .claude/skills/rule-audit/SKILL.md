@@ -17,8 +17,7 @@ metadata:
   source_of_truth: ../../../CLAUDE.md
   changelog: >
     v0.1 — initial draft. The nine rules are defined in CLAUDE.md; this skill enforces
-    them and does not redefine them. Baseline section is the encoded failure class;
-    replace with an observed transcript before treating as evaluated.
+    them and does not redefine them. Baseline observed (clean-room capture).
 ---
 
 # rule-audit

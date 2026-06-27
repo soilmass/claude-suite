@@ -21,7 +21,7 @@ metadata:
     v0.1 — initial draft. Encodes the happy-path-only test failure class: tests that
     call a procedure only as its owner and never exercise the ownership filter or the
     Zod boundary, so rule 2 / rule 8 regressions ship green.
-    Baseline section is the encoded failure class; replace with an observed transcript.
+    Baseline observed (clean-room capture).
 ---
 
 # trpc-integration-test

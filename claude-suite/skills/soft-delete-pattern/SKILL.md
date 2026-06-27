@@ -17,8 +17,7 @@ metadata:
   source_of_truth: ../../CLAUDE.md
   changelog: >
     v0.1 — initial draft. Encodes the soft-delete failure class: adding `deleted_at` but
-    leaving reads unscoped, so deleted rows leak back. Baseline section is the encoded
-    failure class; replace with an observed transcript.
+    leaving reads unscoped, so deleted rows leak back. Baseline observed (clean-room capture).
 ---
 
 # soft-delete-pattern

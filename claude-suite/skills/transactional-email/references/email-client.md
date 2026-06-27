@@ -166,6 +166,9 @@ Record the keying choice (per-event vs per-attempt) in `DECISIONS.md`.
 
 ```ts
 // checkout mutation — protectedProcedure with the ownership check (Rule 2)
+// NB: interactive `db.transaction` does not run over the edge HTTP driver — use a CTE / `db.batch`
+// / idempotent saga for the order write (see `edge-transactions`). Shown here only to mark the
+// commit boundary; the load-bearing point is that the email is sent AFTER that boundary.
 const order = await ctx.db.transaction(async (tx) => {
   /* write order + lines, ownership-scoped to ctx.auth.userId */
   return created;

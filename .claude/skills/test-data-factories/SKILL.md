@@ -16,7 +16,7 @@ metadata:
     v0.1 — initial draft. Encodes the drifting-fixture failure class: hand-built test
     objects typed as `any`/partial literals that diverge from the schema and lie about
     money/time/ownership.
-    Baseline section is the encoded failure class; replace with an observed transcript.
+    Baseline observed (clean-room capture).
 ---
 
 # test-data-factories

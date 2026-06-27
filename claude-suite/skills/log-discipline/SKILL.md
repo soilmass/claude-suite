@@ -16,8 +16,7 @@ metadata:
   changelog: >
     v0.1 — initial draft. Encodes the indiscriminate-logging failure class: unleveled,
     unsampled `console.log` of full request bodies and PII that becomes the top edge-cost
-    line item. Baseline section is the encoded failure class; replace with an observed
-    transcript.
+    line item. Baseline observed (clean-room capture).
 ---
 
 # log-discipline

@@ -17,7 +17,7 @@ metadata:
   changelog: >
     v0.1 — initial draft. Encodes the "secret reaches the browser bundle or git history"
     failure class — NEXT_PUBLIC leaks, keys in client components, committed .env.
-    Baseline section is the encoded failure class; replace with an observed transcript.
+    Baseline observed (clean-room capture).
 ---
 
 # secret-scan

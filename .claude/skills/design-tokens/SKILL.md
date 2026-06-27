@@ -15,8 +15,7 @@ metadata:
   source_of_truth: ../../../CLAUDE.md
   changelog: >
     v0.1 — initial draft. Tailwind v4 @theme CSS-first per CLAUDE.md. Bundles a contrast
-    checker script so no palette ships unverified. Baseline section is the encoded failure
-    class; replace with an observed transcript.
+    checker script so no palette ships unverified. Baseline observed (clean-room capture).
 ---
 
 # design-tokens

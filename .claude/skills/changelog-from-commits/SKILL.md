@@ -18,7 +18,7 @@ metadata:
     v0.1 — initial draft. Encodes the dropped-breaking-change / wrong-bump failure class:
     prose summaries that lose BREAKING CHANGE footers, miscompute the semver bump, and leak
     chore/refactor noise into a user-facing list.
-    Baseline section is the encoded failure class; replace with an observed transcript.
+    Baseline observed (clean-room capture).
 ---
 
 # changelog-from-commits

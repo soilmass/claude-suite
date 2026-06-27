@@ -18,7 +18,7 @@ metadata:
     v0.1 — initial draft. Encodes the misallocated-test-effort failure class: behavior tested
     at the wrong layer (or not at all) so the suite is slow, brittle, and silent on the rules
     that actually break in production (ownership, the four states, boundary validation).
-    Baseline section is the encoded failure class; replace with an observed transcript.
+    Baseline observed (clean-room capture).
 ---
 
 # test-strategy

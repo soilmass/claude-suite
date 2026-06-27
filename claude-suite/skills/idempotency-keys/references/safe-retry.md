@@ -80,8 +80,9 @@ if (!existing) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Id
 return existing;
 ```
 
-If the create also writes related rows or fires an effect, do the upsert and those writes in
-one `db.transaction(async (tx) => …)` so a duplicate retry commits nothing twice.
+If the create also writes related rows or fires an effect, fold those writes into the *same*
+guarded statement set — a CTE or `db.batch` — not an interactive `db.transaction`, which the
+edge HTTP driver does not support (see `edge-transactions`).
 
 ## Webhook event-id dedupe
 
@@ -89,35 +90,54 @@ A webhook provider redelivers on any non-2xx (and sometimes even on a 2xx that i
 in time). After `webhook-handler` has verified the signature and parsed the event, dedupe on
 the provider's stable event id — that *is* the idempotency key, so the client doesn't supply one.
 
-Because the effect is your own DB write, claim and process in *one* transaction: insert the dedup
-row with `onConflictDoNothing` inside the tx, and if it conflicts the event was already handled.
-On a `processEvent` throw the whole tx — claim included — rolls back, so a redelivery cleanly
-reprocesses instead of getting stuck on a committed `pending` row.
+The instinct is to claim and process in *one* `db.transaction` so a `processEvent` throw rolls the
+claim back too. **That interactive transaction does not run at the edge** — the neon-http HTTP
+driver throws on it (CLAUDE.md: no interactive transactions over HTTP; see `edge-transactions`).
+Use the same **saga** the sibling `stripe-integration` webhook path uses: claim atomically with a
+unique-key insert, process, persist the result, and *release the claim on failure* so a redelivery
+can re-run instead of getting stuck on a committed `pending` row.
 
 ```ts
 // after webhook-handler verifies + parses `event` (Stripe Event, evt_…)
-const fp = await fingerprint(event);
-await db.transaction(async (tx) => {
-  const claimed = await tx
-    .insert(requestIdempotency)
-    .values({
-      scopeId: "webhook:stripe",
-      idempotencyKey: event.id,
-      fingerprint: fp,
-      status: "completed", // commits atomically with the effect, so it never lingers as pending
-      expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000),
-    })
-    .onConflictDoNothing({ target: [requestIdempotency.scopeId, requestIdempotency.idempotencyKey] })
-    .returning({ key: requestIdempotency.idempotencyKey });
-  if (claimed.length === 0) return; // already processed by a prior delivery — skip the effect
-  await processEvent(tx, event); // the side effect, exactly once; rolls back with the claim on throw
-});
-return new Response("ok", { status: 200 }); // ack either way so the provider stops redelivering
+const key = event.id; // the provider's stable event id IS the idempotency key
+const [claim] = await db
+  .insert(requestIdempotency)
+  .values({
+    scopeId: "webhook:stripe",
+    idempotencyKey: key,
+    fingerprint: await fingerprint(event),
+    status: "pending",
+    expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000),
+  })
+  .onConflictDoNothing({ target: [requestIdempotency.scopeId, requestIdempotency.idempotencyKey] })
+  .returning();
+
+if (!claim) return storedResultFor("webhook:stripe", key); // already claimed/processed → stored result
+
+try {
+  const result = await processEvent(event); // the side effect, exactly once
+  await db
+    .update(requestIdempotency)
+    .set({ status: "completed", response: result })
+    .where(and(
+      eq(requestIdempotency.scopeId, "webhook:stripe"),
+      eq(requestIdempotency.idempotencyKey, key),
+    ));
+  return new Response("ok", { status: 200 });
+} catch (e) {
+  // release the claim so a retry can re-run (no interactive tx to roll back at the edge)
+  await db
+    .delete(requestIdempotency)
+    .where(and(
+      eq(requestIdempotency.scopeId, "webhook:stripe"),
+      eq(requestIdempotency.idempotencyKey, key),
+    ));
+  throw e;
+}
 ```
 
 Key points:
 - **Always ack 200 on a duplicate** — a non-2xx makes the provider redeliver forever.
-- **Claim + process share one transaction** here because the effect is your own DB write. For an
-  *external* effect (a charge inside a webhook) fall back to the claim → effect → persist order
-  above, since a DB transaction can't roll back the charge.
+- **No interactive transaction** — the edge HTTP driver can't span `claim` and `processEvent` in one
+  `db.transaction`. The saga substitutes a delete-on-failure to release the claim (see `edge-transactions`).
 - **The event id is the natural key** — never generate a fresh key per delivery, that defeats it.

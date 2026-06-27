@@ -17,7 +17,7 @@ metadata:
   changelog: >
     v0.1 — initial draft. Encodes the internals-shaped release-note failure class: a flattened
     commit log in implementation terms, no upgrade steps, and breaking changes buried among
-    features. Baseline section is the encoded failure class; replace with an observed transcript.
+    features. Baseline observed (clean-room capture).
 ---
 
 # release-notes

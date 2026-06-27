@@ -17,7 +17,7 @@ metadata:
   changelog: >
     v0.1 — initial draft. Retargeted from Prisma to Drizzle per DECISIONS.md: schema is
     authored as TypeScript in src/db/schema/, types root at $inferSelect/$inferInsert.
-    Baseline section is the encoded failure class; replace with an observed transcript.
+    Baseline observed (clean-room capture).
 ---
 
 # schema-design

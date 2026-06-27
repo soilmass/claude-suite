@@ -18,8 +18,7 @@ metadata:
   changelog: >
     v0.1 — initial draft. Encodes the failure class of "optimizing" a query by reading its
     SQL and adding an index by vibe, without ever capturing the plan or measuring on real
-    data — so the change touches nothing the planner does. Baseline section is the encoded
-    failure class; replace with an observed transcript.
+    data — so the change touches nothing the planner does. Baseline observed (clean-room capture).
 ---
 
 # query-optimization

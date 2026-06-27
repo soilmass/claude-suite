@@ -17,8 +17,7 @@ metadata:
   changelog: >
     v0.1 — initial draft. Encodes the float-money failure class (Rule 5): dollars stored as
     `real`/`number`, `* 100` / `/ 100` scattered ad hoc, naive splitting that loses cents,
-    no currency column, and unrounded division. Baseline section is the encoded failure
-    class; replace with an observed transcript.
+    no currency column, and unrounded division. Baseline observed (clean-room capture).
 ---
 
 # money-modeling

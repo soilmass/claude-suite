@@ -20,7 +20,7 @@ metadata:
     v0.1 — initial draft. Encodes the "green but toothless CI" failure class: gate steps that
     swallow their exit code, never gate the merge via branch protection, leak secrets into the
     workflow, or run only on push to main so PRs are never checked.
-    Baseline section is the encoded failure class; replace with an observed transcript.
+    Baseline observed (clean-room capture).
 ---
 
 # ci-pipeline

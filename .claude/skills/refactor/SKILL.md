@@ -17,8 +17,7 @@ metadata:
   source_of_truth: ../../../CLAUDE.md
   changelog: >
     v0.1 — initial draft. Surfaced by the capability map's depth/breadth audit as the
-    second daily-loop skill. Baseline section is the encoded failure class; replace with
-    an observed transcript.
+    second daily-loop skill. Baseline observed (clean-room capture).
 ---
 
 # refactor

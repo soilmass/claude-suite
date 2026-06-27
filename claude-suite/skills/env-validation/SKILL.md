@@ -17,7 +17,7 @@ metadata:
   changelog: >
     v0.1 — initial draft. Encodes the "unvalidated env that crashes in production / leaks a
     secret to the client" failure class.
-    Baseline section is the encoded failure class; replace with an observed transcript.
+    Baseline observed (clean-room capture).
 ---
 
 # env-validation

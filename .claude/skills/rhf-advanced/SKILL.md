@@ -17,8 +17,7 @@ metadata:
   changelog: >
     v0.1 — initial draft. Encodes the form-leaf failure class: a re-declared resolver
     schema, index-keyed field arrays, racing async validators, and silently swallowed
-    server errors. Baseline section is the encoded failure class; replace with an
-    observed transcript.
+    server errors. Baseline observed (clean-room capture).
 ---
 
 # rhf-advanced

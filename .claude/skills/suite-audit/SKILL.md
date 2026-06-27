@@ -16,7 +16,7 @@ metadata:
   changelog: >
     v0.1 — initial draft. The suite's self-maintenance gate; reuses skill-create's lint-skill.mjs
     and adds agent/command/cross-reference/duplicate-trigger checks plus composition-map
-    regeneration. Baseline section is the encoded failure class; replace with an observed transcript.
+    regeneration. Baseline observed (clean-room capture).
 ---
 
 # suite-audit

@@ -17,7 +17,7 @@ metadata:
     v0.1 — initial draft. Encodes the "heavy/leaky client bundle on the edge" failure class:
     a Server/Client boundary drawn wrong drags server-only code and oversized deps into the
     browser graph, where they cost First Load JS and edge cold-start weight.
-    Baseline section is the encoded failure class; replace with an observed transcript.
+    Baseline observed (clean-room capture).
 ---
 
 # bundle-analysis

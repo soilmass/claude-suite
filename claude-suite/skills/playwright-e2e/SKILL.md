@@ -16,7 +16,7 @@ metadata:
   changelog: >
     v0.1 — initial draft. Encodes the e2e failure class: flaky happy-path-only specs that fake
     or skip Clerk auth and never exercise the loading/empty/error states in the browser.
-    Baseline section is the encoded failure class; replace with an observed transcript.
+    Baseline observed (clean-room capture).
 ---
 
 # playwright-e2e

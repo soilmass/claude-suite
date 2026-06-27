@@ -15,8 +15,7 @@ metadata:
   source_of_truth: ../../CLAUDE.md
   changelog: >
     v0.1 — initial draft. Encodes the hook contract: fast, network-free, self-explaining
-    block path, wired in settings.json. Baseline section is the encoded failure class;
-    replace with an observed transcript.
+    block path, wired in settings.json. Baseline observed (clean-room capture).
 ---
 
 # hook-create

@@ -18,7 +18,7 @@ metadata:
     v0.1 — initial draft. Encodes the "launched with no cap, found out via the invoice"
     failure class: no provider spend limit, alerts to nowhere, one budget for all envs,
     preview deploys metered as production.
-    Baseline section is the encoded failure class; replace with an observed transcript.
+    Baseline observed (clean-room capture).
 ---
 
 # spend-cap

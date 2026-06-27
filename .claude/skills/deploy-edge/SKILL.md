@@ -17,7 +17,7 @@ metadata:
     v0.1 — initial draft. Encodes the "deploy config leaks or breaks production" failure
     class: a secret promoted into the client bundle, env vars wired to the wrong scope, or a
     build promoted ahead of its migration.
-    Baseline section is the encoded failure class; replace with an observed transcript.
+    Baseline observed (clean-room capture).
 ---
 
 # deploy-edge

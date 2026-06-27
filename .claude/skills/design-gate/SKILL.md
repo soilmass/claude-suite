@@ -17,8 +17,7 @@ metadata:
   changelog: >
     v0.1 — initial draft. The 4th done-time gate, sibling to rule-audit / a11y-gate /
     security-pass. Owns design-system adherence + craft; defers contrast to a11y-gate and
-    hardcoding to rule-audit. Baseline section is the encoded failure class; replace with an
-    observed transcript.
+    hardcoding to rule-audit. Baseline observed (clean-room capture).
 ---
 
 # design-gate

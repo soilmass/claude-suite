@@ -18,8 +18,7 @@ metadata:
   changelog: >
     v0.1 — initial draft. Encodes the missing/mis-ordered index failure class: unindexed
     foreign keys, single-column indexes where a composite is needed, and full indexes where
-    a partial fits soft-delete/status. Baseline section is the encoded failure class;
-    replace with an observed transcript.
+    a partial fits soft-delete/status. Baseline observed (clean-room capture).
 ---
 
 # index-strategy

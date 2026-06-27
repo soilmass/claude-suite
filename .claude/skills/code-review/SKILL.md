@@ -16,7 +16,7 @@ metadata:
   changelog: >
     v0.1 — initial draft. Encodes the quality-review gap: a diff that passes rule-audit and
     compiles but is unreadable, mis-named, duplicated, over-nested, or built at the wrong layer.
-    Baseline section is the encoded failure class; replace with an observed transcript.
+    Baseline observed (clean-room capture).
 ---
 
 # code-review

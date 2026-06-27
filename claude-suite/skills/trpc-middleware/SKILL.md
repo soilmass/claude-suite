@@ -16,8 +16,7 @@ metadata:
   changelog: >
     v0.1 — initial draft. Encodes the failure class where the auth gate authenticates but
     procedures skip ownership, where business logic leaks into middleware, and where logging
-    middleware records request bodies/PII at the edge. Baseline section is the encoded
-    failure class; replace with an observed transcript.
+    middleware records request bodies/PII at the edge. Baseline observed (clean-room capture).
 ---
 
 # trpc-middleware

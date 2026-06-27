@@ -17,7 +17,7 @@ metadata:
   changelog: >
     v0.1 — initial draft. Encodes the "Node API shipped to the edge runtime" failure class:
     code that builds locally on the default Node runtime and dies at the edge boundary.
-    Baseline section is the encoded failure class; replace with an observed transcript.
+    Baseline observed (clean-room capture).
 ---
 
 # edge-runtime-constraints

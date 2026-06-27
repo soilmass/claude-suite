@@ -11,7 +11,7 @@ description: >
   Use when: "add stripe", "stripe checkout", "stripe subscription", "stripe webhook",
   "handle a payment", "billing".
   Do NOT use for: how money is stored, formatted, or split (use money-modeling); the generic
-  non-Stripe inbound-webhook verify-parse-upsert plumbing (use clerk-auth-flows); designing
+  non-Stripe inbound-webhook verify-parse-upsert plumbing (use webhook-handler); designing
   the non-payment domain tables (use schema-design).
 license: Apache-2.0
 metadata:
@@ -80,8 +80,9 @@ a number, store it however."
 
 - Deciding how money is stored, branded, rounded, split, or formatted → `money-modeling`
   (this skill consumes its column type and `currency` companion; it never re-decides them).
-- The generic, non-Stripe inbound webhook (Svix-verify → Zod-parse → upsert) → `clerk-auth-flows`
-  is the reference instance of that pattern; this skill is the Stripe specialization.
+- The generic, non-Stripe inbound webhook (verify → Zod-parse → upsert) → `webhook-handler` owns
+  that pattern (its Clerk/Svix reference instance is `clerk-auth-flows`); this skill is the Stripe
+  specialization.
 - Validating the `STRIPE_*` env vars in isolation → `env-validation` owns the typed boundary.
 - Designing the non-payment domain tables the purchase relates to → `schema-design`.
 - Diagnosing why a Node-only dep breaks under the edge runtime → `edge-runtime-constraints`.

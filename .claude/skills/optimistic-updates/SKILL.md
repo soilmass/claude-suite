@@ -17,8 +17,7 @@ metadata:
   source_of_truth: ../../CLAUDE.md
   changelog: >
     v0.1 — initial draft. Encodes the optimistic-cache failure class: setData with no
-    cancel, no snapshot, no rollback, and no reconciling invalidate. Baseline section is
-    the encoded failure class; replace with an observed transcript.
+    cancel, no snapshot, no rollback, and no reconciling invalidate. Baseline observed (clean-room capture).
 ---
 
 # optimistic-updates

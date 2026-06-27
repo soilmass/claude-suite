@@ -18,8 +18,7 @@ metadata:
   source_of_truth: ../../../CLAUDE.md
   changelog: >
     v0.1 — initial draft. The motion-design engine design-tokens orchestrates: easing
-    semantics, duration bands, choreography, and the reduced-motion variant. Baseline section
-    is the encoded failure class; replace with an observed transcript.
+    semantics, duration bands, choreography, and the reduced-motion variant. Baseline observed (clean-room capture).
 ---
 
 # motion-system

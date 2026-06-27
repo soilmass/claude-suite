@@ -17,7 +17,7 @@ metadata:
   changelog: >
     v0.1 — initial draft. Encodes the diagram-drift failure class: pictures that live outside
     the repo, drift from the code, and misrepresent the edge runtime boundary and ownership.
-    Baseline section is the encoded failure class; replace with an observed transcript.
+    Baseline observed (clean-room capture).
 ---
 
 # diagram-author

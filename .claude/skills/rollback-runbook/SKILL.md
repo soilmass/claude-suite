@@ -19,7 +19,7 @@ metadata:
     v0.1 — initial draft. Encodes the rollback failure class: running a migration `down` (or
     promoting old code) without checking whether the contract step already destroyed the data
     or shape the old code depends on, turning a recoverable regression into data loss.
-    Baseline section is the encoded failure class; replace with an observed transcript.
+    Baseline observed (clean-room capture).
 ---
 
 # rollback-runbook

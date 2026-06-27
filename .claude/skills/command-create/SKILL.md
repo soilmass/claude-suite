@@ -15,7 +15,7 @@ metadata:
   source_of_truth: ../../CLAUDE.md
   changelog: >
     v0.1 — initial draft. Encodes the thin-command contract: invoke skills, don't reimplement
-    them. Baseline section is the encoded failure class; replace with an observed transcript.
+    them. Baseline observed (clean-room capture).
 ---
 
 # command-create
@@ -120,10 +120,10 @@ an explicit pass/fail contract.
 description]"`, no `allowed-tools` (pure prompt). Body: "Invoke the `vertical-slice` skill to
 build: $ARGUMENTS. Then report the self-audit." Thin — the skill owns the procedure.
 
-**Input:** "Make a /gates command that runs all three gates."
-**Output:** An orchestrator: body sequences `rule-audit` → `a11y-gate` → `security-pass` on
-`$ARGUMENTS`, states "run all three even if one finds issues; report findings grouped by
-gate," and names each skill rather than inlining its steps.
+**Input:** "Make a /gates command that runs all four gates."
+**Output:** An orchestrator: body sequences `rule-audit` → `a11y-gate` → `security-pass` →
+`design-gate` on `$ARGUMENTS`, states "run all four even if one finds issues; report findings
+grouped by gate," and names each skill rather than inlining its steps.
 
 ---
 

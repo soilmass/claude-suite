@@ -19,7 +19,7 @@ metadata:
     v0.1 — initial draft. Encodes the "misread the vital, named the wrong fix" failure class:
     judging on lab/average instead of field p75, and prescribing a generic optimization that
     doesn't move the metric that actually regressed.
-    Baseline section is the encoded failure class; replace with an observed transcript.
+    Baseline observed (clean-room capture).
 ---
 
 # perf-budget-check

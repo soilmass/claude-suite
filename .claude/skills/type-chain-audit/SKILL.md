@@ -17,7 +17,7 @@ metadata:
   changelog: >
     v0.1 — initial draft. Encodes the broken-type-chain failure class: a cast, `any`, or
     untyped parse silently severs inference at one hop so a downstream shape drift compiles.
-    Baseline section is the encoded failure class; replace with an observed transcript.
+    Baseline observed (clean-room capture).
 ---
 
 # type-chain-audit

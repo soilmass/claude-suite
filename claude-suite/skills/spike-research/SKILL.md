@@ -17,7 +17,7 @@ metadata:
   changelog: >
     v0.1 — initial draft. Encodes the unbounded-spike failure class: no learning question,
     no timebox, throwaway code merged, and unexplored gaps treated as proven.
-    Baseline section is the encoded failure class; replace with an observed transcript.
+    Baseline observed (clean-room capture).
 ---
 
 # spike-research

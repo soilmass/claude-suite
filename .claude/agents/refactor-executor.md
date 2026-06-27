@@ -61,4 +61,4 @@ Return:
 ## Hands off to
 - `refactor` skill when scope is unconfirmed, ambiguous, or must expand beyond what was approved.
 - `migration-author` when the change touches the schema and production data must be moved.
-- `rule-audit`, `a11y-gate`, and `security-pass` for the post-change quality gates (you do not run them).
+- `rule-audit`, `a11y-gate`, `security-pass`, and `design-gate` for the post-change quality gates (you do not run them).

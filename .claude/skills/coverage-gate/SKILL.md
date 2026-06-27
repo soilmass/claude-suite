@@ -17,7 +17,7 @@ metadata:
     v0.1 — initial draft. Encodes the coverage-theater failure class: a high global percentage
     that proves nothing because generated code is counted, the wrong files are excluded to hit
     the number, and the threshold is never enforced in CI so it silently rots downward.
-    Baseline section is the encoded failure class; replace with an observed transcript.
+    Baseline observed (clean-room capture).
 ---
 
 # coverage-gate

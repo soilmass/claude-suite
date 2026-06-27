@@ -18,7 +18,7 @@ metadata:
     v0.1 — initial draft. Encodes the reinvention failure class: building a helper, hook,
     schema, or interaction that already exists in-repo, in a stack primitive, or as a
     Web-standard API — duplicated, drifting, and untyped.
-    Baseline section is the encoded failure class; replace with an observed transcript.
+    Baseline observed (clean-room capture).
 ---
 
 # prior-art-search

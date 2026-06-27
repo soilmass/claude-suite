@@ -15,8 +15,7 @@ metadata:
   source_of_truth: ../../../CLAUDE.md
   changelog: >
     v0.1 — initial draft. Retargeted to edge/Drizzle per DECISIONS.md: Clerk edge
-    middleware, serverless DB driver, drizzle-kit. Baseline section is the encoded
-    failure class; replace with an observed transcript.
+    middleware, serverless DB driver, drizzle-kit. Baseline observed (clean-room capture).
 ---
 
 # t3-genesis

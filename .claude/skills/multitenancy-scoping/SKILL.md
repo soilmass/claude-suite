@@ -18,8 +18,7 @@ metadata:
   changelog: >
     v0.1 — initial draft. Encodes the cross-tenant data-leak failure class: a query that
     authenticates and even checks single-user ownership but omits the org/tenant predicate,
-    so members of org A read or mutate org B's rows. Baseline section is the encoded
-    failure class; replace with an observed transcript.
+    so members of org A read or mutate org B's rows. Baseline observed (clean-room capture).
 ---
 
 # multitenancy-scoping
