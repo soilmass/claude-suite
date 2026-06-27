@@ -35,7 +35,14 @@ Rules:
 - `description` is the **only** trigger surface loaded at startup — it must carry the
   `Use when:` phrases (present-tense user utterances, no "help me") and a `Do NOT use for:`
   that names the sibling that owns the excluded case.
-- `source_of_truth: ../../CLAUDE.md` is canonical on every skill.
+- `source_of_truth` points at the spine `CLAUDE.md`. A **distributable** skill (one that ships
+  in `claude-suite/skills/` and is also installed into a project's `.claude/skills/`) uses
+  `../../CLAUDE.md` — the bundle's own spine. A **foundation** skill (`.claude/skills/` only)
+  uses `../../../CLAUDE.md` — the repo-root spine, its only home. The same bytes therefore sit
+  one level apart from a `CLAUDE.md` across the two homes; `lint-skill.mjs` is dual-home tolerant
+  (accepts the stated depth or ±1 level) so a valid distributable path is never flagged in its
+  install copy, while a genuinely wrong path still is. Do not "fix" a two-level path to three
+  levels to silence a lint copy — both are correct for their tier.
 
 ### Body — sections in this exact order
 
