@@ -128,19 +128,28 @@ cast the mock, the real shape is close enough."
 
 ---
 
-## Baseline failure (REPLACE WITH OBSERVED TRANSCRIPT)
+## Baseline failure (observed 2026-06-26)
 
-> This is the encoded failure class, not a captured transcript. Replace it after running
-> the task without the skill and recording what the agent actually does.
+> Captured by running the task without this skill (a general-purpose agent, no project
+> conventions). The encoded failure class was confirmed.
 
-**Failure class encoded:** Asked to "test the `ProjectList` component," the agent writes one
-test: mock the query to return two rows, `render`, assert both titles appear, done. Loading is
-never asserted (the skeleton can disappear and the suite stays green). Empty and error are
-never written — and when pressed, the agent adds a single `expect(screen.queryByRole('listitem')).toBeNull()` test that passes identically whether the data is `[]` or the query threw, so a
-crashed error boundary reads as "empty." The fixture is `as any` so a later schema rename to
-`title → name` never fails the test. Assertions key off `data-testid="row"` rather than visible
-text, so the row can render blank and still pass. The suite reports four green checks and one
-real state covered (Rule 4 unmet).
+**Observed run.** Asked to test `ProjectList`, the naive agent mocked `api.project.list.useQuery`
+and wrote exactly two `it(...)` blocks — loading and success — leaving the empty (`data === []`)
+and error (`isError`) states with no test at all, a direct Rule 4 gap. It also cast the mock
+loosely instead of typing it against the procedure's inferred output, so a return-type drift
+would never fail the suite (Rule 1):
+
+```ts
+const useQueryMock = api.project.list.useQuery as unknown as ReturnType<typeof vi.fn>;
+// only "loading" and "success" it() blocks; no empty, no error
+expect(screen.getByText(/loading/i)).toBeInTheDocument();
+```
+
+**Failure class (confirmed).** Left to its own devices, the agent equates "test the component"
+with "assert the happy-path render," shipping a green suite that proves only one of four states
+and leaves loading/empty/error free to regress. It compounds this by `as`-casting the hook mock,
+breaking the type chain so fixture drift goes undetected, and asserting on microcopy rather than
+stable accessible queries.
 
 ---
 

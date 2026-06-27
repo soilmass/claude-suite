@@ -98,23 +98,27 @@ number," "100% lines means it's tested," "just drop the threshold two points to 
 - **Runs against:** the Vitest suite across `src/` business logic and procedures.
 - **Hands off:** a failing gate to whoever writes the missing test — never to a lowered threshold.
 
-## Baseline failure (REPLACE WITH OBSERVED TRANSCRIPT)
+## Baseline failure (observed 2026-06-26)
 
-> This is the encoded failure *class*, not a captured transcript. Replace it with a real
-> transcript once one is observed.
+> Captured by running the task without this skill (a general-purpose agent, no project
+> conventions). The encoded failure class was confirmed.
 
-**Failure class encoded:** Asked to "add coverage thresholds," the agent ships:
+**Observed run.** Asked to add a coverage gate, the naive agent produced a working Vitest v8
+config with a CI job and HTML/lcov reports — but the entire gate was a single flat 80% applied
+uniformly, with a coarse self-serving exclude list and no targeting of the security-critical
+paths. The 80% is an arbitrary round number, not derived from risk, and the global average can be
+met while every ownership check (Rule 2) or cents helper (Rule 5) sits in the uncovered 20%.
 
-- a single global `lines: 80` threshold and nothing for `branches`/`functions`, so every unhit
-  `else`, error path, and empty-state render (Rule 4) counts as covered as long as the line ran.
-- no `exclude` list, so generated Drizzle migrations, `*.config.ts`, `**/*.d.ts`, and shadcn
-  scaffolds are counted — inflating the percentage with code that has no logic to test.
-- `--coverage` added to the local script but never wired into CI, or wired with a reporter only,
-  so the threshold is printed and the build still exits 0 below budget.
-- a threshold "fixed" by excluding the module that fails it (the cents helper, the ownership
-  function), hiding exactly the Rule 5 / Rule 2 logic the gate exists to protect.
-- a number that drifts downward over months because there is no ratchet, so the gate that looked
-  green at setup quietly permits regressions.
+```ts
+thresholds: { lines: 80, functions: 80, branches: 80, statements: 80 },
+exclude: [ /* ... */ "src/app/**/page.tsx", "src/app/**/layout.tsx", "**/types/**" ],
+```
+
+**Failure class (confirmed).** The gate becomes coverage theater: a flat global percentage that
+proves nothing because the wrong files are excluded to make the number easier to hit and the
+high-blast-radius modules get no per-file floor. A passing 80% says lines executed, not that auth
+or money behavior is verified — this skill replaces the flat number with curated excludes and
+per-file thresholds on the modules that actually matter.
 
 ## Examples
 

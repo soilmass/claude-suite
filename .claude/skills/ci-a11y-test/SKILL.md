@@ -111,19 +111,32 @@ Refuse these rationalizations: "axe passes, so it's accessible"; "just scan the 
 
 ---
 
-## Baseline failure (REPLACE WITH OBSERVED TRANSCRIPT)
+## Baseline failure (observed 2026-06-26)
 
-> Encoded failure class per the suite's design; replace with a real run-without-the-skill
-> transcript before treating this as evaluated.
+> Captured by running the task without this skill (a general-purpose agent, no project
+> conventions). The encoded failure class was confirmed.
 
-**Failure class encoded:** Asked to "add accessibility testing in CI," the agent produces: a
-single jsdom-based `axe-core` call against the marketing homepage's static HTML (so
-`color-contrast` is skipped entirely for lack of computed styles); a CI step marked
-`continue-on-error: true` that prints violations and is always green; no Clerk auth, so every
-protected route — the actual product — is never scanned; only the success DOM is analyzed, so a
-low-contrast empty-state illustration and an error toast with no live region (Rule 4) sail
-through; and a README line claiming the app is "WCAG AA accessible" on the strength of a tool
-that detects a minority of WCAG criteria. It merges, looks like a gate, and certifies nothing.
+**Observed run.** The naive output stood up a GitHub Actions job that builds the app, runs
+`npm run start`, and points `pa11y-ci` (axe runner, WCAG2AA) at a hardcoded list of four
+public-ish routes — including `/dashboard`, which under Clerk redirects to sign-in, so the
+scan silently audits the login page instead of the real authed UI. No authentication, no
+per-route state coverage, and only the automated half with no acknowledgement that manual
+WCAG checks remain.
+
+```json
+"urls": [
+  "http://localhost:3000",
+  "http://localhost:3000/about",
+  "http://localhost:3000/pricing",
+  "http://localhost:3000/dashboard"
+]
+```
+
+**Failure class (confirmed).** Generated a11y CI scans a hardcoded handful of public routes
+without signing in, so protected routes — the actual product — go unscanned (a redirect to
+sign-in is read as a pass), and only the success DOM is checked rather than each route's four
+states (Rule 4). It also treats a green axe run as "accessible," ignoring the manual WCAG 2.2
+AA review and the project's existing a11y conventions.
 
 ---
 

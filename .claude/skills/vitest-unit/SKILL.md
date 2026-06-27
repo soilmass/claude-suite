@@ -95,22 +95,30 @@ only test code, `any` is fine here."
 - **Hands off:** `trpc-integration-test` for the procedure/auth/db path this scope excludes;
   `refactor` when the logic must be extracted before it can be unit-tested.
 
-## Baseline failure (REPLACE WITH OBSERVED TRANSCRIPT)
+## Baseline failure (observed 2026-06-26)
 
-> This is the encoded failure *class*, not a captured transcript. Replace it with a real
-> transcript once one is observed.
+> Captured by running the task without this skill (a general-purpose agent, no project
+> conventions). The encoded failure class was confirmed.
 
-**Failure class encoded:** Without this skill, a generated "unit test" tends to ship with:
+**Observed run.** Asked to set up Vitest and unit-test a cart total, the naive agent modeled
+prices as floating-point dollars and wrote the function plus tests around that shape — the
+suite even asserts `19.98` from `9.99 * 2`, baking the float into a green test:
 
-- the business logic still inlined in the tRPC procedure, so the test mocks the db client and
-  Clerk's `auth()` to reach it — slow, brittle, and actually an integration test in disguise.
-- money assertions using `toBeCloseTo(19.99, 2)`, masking the exact float rounding bug the test
-  should catch (Rule 5).
-- a date assertion against `new Date()` / `Date.now()` with no frozen clock, so it passes today
-  and fails at midnight UTC or a month/leap boundary (Rule 6).
-- fixtures typed `as any`, severing the chain so a later field rename leaves the test green while
-  production breaks (Rule 1).
-- one giant `it` with five unrelated assertions, so a failure names the test, not the broken rule.
+```ts
+export function computeTotal(items: CartItem[]): number {
+  return items.reduce((sum, item) => sum + item.price * item.quantity, 0);
+}
+// expect(computeTotal([{ name: "Widget", price: 9.99, quantity: 2 }])).toBe(19.98);
+```
+
+The single-item case happens to pass, but nothing guards against `0.1 + 0.2` drift across a
+real multi-item cart. The config was also standalone — `environment: "node"` only, no
+`vite-tsconfig-paths` for the project's `~/`/`@/` aliases and no coverage provider/threshold.
+
+**Failure class (confirmed).** Without this skill the agent reaches for `number`-as-dollars
+and float-tolerant assertions, violating Rule 5 silently — the bug hides behind a passing
+test. It also ships a config that ignores the project's path aliases and coverage gate, so
+tests that import real app modules would break and there is no enforced quality floor.
 
 ## Examples
 

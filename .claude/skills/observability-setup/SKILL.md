@@ -120,18 +120,38 @@ the OTel Node SDK in middleware."
 
 ---
 
-## Baseline failure (REPLACE WITH OBSERVED TRANSCRIPT)
-> Encoded failure class, not a captured transcript; replace once observed in the wild.
+## Baseline failure (observed 2026-06-26)
 
-**Failure class encoded:** Asked to "add Sentry and tracing," the agent installs `@sentry/nextjs`,
-drops one `Sentry.init`, and calls it done. Concrete defects that ship: (1) `SENTRY_AUTH_TOKEN`
-exposed as `NEXT_PUBLIC_SENTRY_AUTH_TOKEN` "so the build can upload maps," leaking a
-project-scoped secret into the client bundle (Rule 9); (2) only the client config written, so
-server- and edge-thrown errors never reach Sentry (no `onRequestError`, no edge init); (3)
-`tracesSampleRate: 1.0` hardcoded, so every request is traced and billed; (4) no `release`, so
-errors aren't attributable to a deploy and source maps don't apply, leaving minified stack
-traces; (5) the OTel Node SDK imported into middleware, which dies at the edge runtime; (6)
-`sendDefaultPii: true` left on, capturing request bodies and user data into the error stream.
+> Captured by running the task without this skill (a general-purpose agent, no project
+> conventions). The encoded failure class was confirmed.
+
+**Observed run.** Asked to instrument observability, the naive agent produced a clean,
+conventional `@sentry/nextjs` wizard wiring — client/server/edge configs, `instrumentation.ts`,
+`withSentryConfig` source-map upload, a `global-error` boundary, and a sketched tRPC `onError`.
+But it hardcoded `tracesSampleRate: 1.0` in all three runtimes (the top edge cost driver the
+stack warns against), enabled Session Replay with `maskAllText: false` / `blockAllMedia: false`
+and no `beforeSend` scrubbing (capturing user content and request bodies — PII), set no
+`release` identity, read env vars directly with no Zod boundary, and wired no OTel exporter at
+all despite the OTel brief.
+
+```ts
+Sentry.init({
+  dsn: process.env.NEXT_PUBLIC_SENTRY_DSN,
+  tracesSampleRate: 1.0,                 // every request traced + billed, all envs
+  replaysSessionSampleRate: 0.1,
+  replaysOnErrorSampleRate: 1.0,
+  integrations: [
+    Sentry.replayIntegration({ maskAllText: false, blockAllMedia: false }), // PII capture
+  ],
+});
+```
+
+**Failure class (confirmed).** Default Sentry wiring instruments *that an error happened* but
+not *cheaply, attributably, or safely*: it ships full sampling (a surprise bill), no release
+(errors unpinned to a deploy, source maps unreliable), unvalidated env boundaries (Rule 8), and
+PII-leaking capture (Session Replay + unscrubbed bodies) — and skips the vendor-neutral OTel
+trace pipeline entirely. This skill forces env-driven sampling, a release identity, a Zod env
+boundary, PII defaults off, and real OTel registration.
 
 ---
 

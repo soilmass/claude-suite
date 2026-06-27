@@ -115,19 +115,31 @@ client-side, they're only booleans" (the provider token is the leak).
 
 ---
 
-## Baseline failure (REPLACE WITH OBSERVED TRANSCRIPT)
-> Encoded failure class, not a captured transcript; replace once observed in the wild.
+## Baseline failure (observed 2026-06-26)
 
-**Failure class encoded:** Asked to "put the new checkout behind a flag for a 10% rollout," the
-agent wires a toggle that works in `next dev` and quietly fails the spine. Concrete defects that
-ship: (1) `if (process.env.FEATURE_CHECKOUT === "true")` read as a stringly-typed env toggle —
-no registry, no type, flippable only by redeploy, so it is not a kill switch at all; (2)
-`Math.random() < 0.1` for the 10% gate, re-bucketing every user on every request so the cart
-flickers between old and new; (3) the flag store read with no `try`/no Zod parse and no default,
-so when Edge Config blips the whole route 500s — the flag took the site down; (4) the flag
-provider's API token placed in `NEXT_PUBLIC_FLAGS_TOKEN` "so the client can evaluate," inlined
-into the bundle (Rule 9); (5) evaluation written with the Node KV SDK, dying at the edge, and no
-sunset note, so the dead `checkout-v1` branch lingers for a year.
+> Captured by running the task without this skill (a general-purpose agent, no project
+> conventions). The encoded failure class was confirmed.
+
+**Observed run.** Asked to put a beta feature behind a flag with an allowlist, percentage
+rollout, and a kill switch, the agent produced a `lib/feature-flags.ts` that reads everything
+from `NEXT_PUBLIC_*` env vars and gates with a single shared helper evaluated on both client and
+server. The kill switch and rollout are env-only — flipping either requires a redeploy, so it is
+not a runtime toggle at all — and the `NEXT_PUBLIC_` prefix ships the user-ID allowlist and
+rollout config into the client bundle, where the gate is also bypassable (the server tRPC check
+was left as a comment, not wired). Env inputs were read raw with no Zod parse or bounds, and
+bucketing used a hand-rolled non-cryptographic hash.
+
+```ts
+export const BETA_ENABLED = process.env.NEXT_PUBLIC_BETA_ENABLED !== "false";
+const BETA_USER_IDS = (process.env.NEXT_PUBLIC_BETA_USER_IDS ?? "").split(",")...
+const BETA_ROLLOUT_PCT = Number(process.env.NEXT_PUBLIC_BETA_ROLLOUT_PCT ?? "0");
+```
+
+**Failure class (confirmed).** Flags read from `NEXT_PUBLIC_*` env are deploy-time, not runtime:
+the kill switch can't kill without a redeploy, and the prefix leaks the allowlist and rollout
+config (Rule 9) while making the gate client-bypassable. Without a typed registry, a fail-safe
+Zod-parsed source read (Rule 8), and a single server-side evaluation handing the client only a
+resolved boolean, the flag breaks the spine the moment it leaves `next dev`.
 
 ---
 

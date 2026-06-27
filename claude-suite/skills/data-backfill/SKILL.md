@@ -122,19 +122,32 @@ it once in a tRPC mutation"; "OFFSET is simpler"; "re-running would double it bu
 
 ---
 
-## Baseline failure (REPLACE WITH OBSERVED TRANSCRIPT)
+## Baseline failure (observed 2026-06-26)
 
-> This is the encoded failure class, not a captured transcript. Replace it after running
-> the task without the skill and recording what the agent actually does.
+> Captured by running the task without this skill (a general-purpose agent, no project
+> conventions). The encoded failure class was confirmed.
 
-**Failure class encoded:** Asked to "backfill the new `full_name` column," the agent writes
-one `await db.update(users).set({ fullName: sql\`first_name || ' ' || last_name\` })` — a
-single unbounded `UPDATE` that locks every row and exceeds the HTTP driver's statement
-timeout, committing partial, unknown state. Variants: running it inside a tRPC mutation that
-dies at the edge wall-clock limit; OFFSET pagination that degrades each batch and skips rows
-as new ones are inserted; no `IS NULL` guard, so re-running after the timeout overwrites
-rows fixed by hand; and no checkpoint, so a crash restarts from zero. Each works on 50 dev
-rows and melts on 2M production rows.
+**Observed run.** Asked to add a NOT NULL `status` column to `orders` and backfill 5M
+existing rows, the agent emitted a single drizzle migration that does the DDL and a
+table-wide `UPDATE` inline — one unbounded statement over all 5M rows, no batching, no
+checkpoint, and folded into the schema migration rather than run as a separate gated data
+job. The backfill is also dead work: the column default already populates every row at
+`ADD COLUMN` time, so the `WHERE` matches nothing and the real intent is never implemented.
+
+```sql
+ALTER TABLE "orders"
+  ADD COLUMN "status" varchar(20) NOT NULL DEFAULT 'pending';
+
+UPDATE "orders"
+SET "status" = 'pending'
+WHERE "status" IS NULL OR "status" = '';
+```
+
+**Failure class (confirmed).** A single unbounded `UPDATE` over a large table blows past the
+serverless HTTP driver's statement timeout and commits partial, unknown state, with no
+batching, idempotency guard, or checkpoint to resume from. Bundling the long DML into the
+DDL migration instead of a separate, batched, resumable Node job off the edge is exactly the
+unsafe-backfill pattern this skill prevents.
 
 ---
 

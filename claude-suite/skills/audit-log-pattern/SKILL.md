@@ -128,21 +128,36 @@ later"; "the userId is implied by the session, no need to denormalize it onto th
 
 ---
 
-## Baseline failure (REPLACE WITH OBSERVED TRANSCRIPT)
+## Baseline failure (observed 2026-06-26)
 
-> This is the encoded failure class, not a captured transcript. Replace it after running the
-> task without the skill and recording what the agent actually does.
+> Captured by running the task without this skill (a general-purpose agent, no project
+> conventions). The encoded failure class was confirmed.
 
-**Failure class encoded:** Asked to "add an audit log for order changes," the agent creates
-an `audit_logs` table with `updated_at`/`deleted_at` columns and an `update`/`delete`
-procedure (so the "immutable" record is fully editable), stores `action` as a free-text
-`varchar` ("updated", "Updated", "edit" all coexist), writes the entry with a fire-and-forget
-`void recordLog(...)` *after* the transaction commits (so it silently drops under load and
-can commit a half-truth), omits the actor entirely ("the session knows who it is"), stores
-`new Date().toISOString()` computed in the server's local zone instead of a `timestamptz`
-default (Rule 6), and dumps the entire updated row — including a payment token — into a
-`jsonb` `data` column (Rules 8, 9). It compiles, the feed renders, and the first real
-incident review finds the one row that mattered was overwritten the next day.
+**Observed run.** Asked to add an audit log for invoice changes, the agent produced a
+plausible `audit_logs` table and wired it into the `invoice.update` mutation — but the
+invoice UPDATE and the audit INSERT were two separate awaits, not one transaction, so a
+failed insert leaves the change committed without a matching record. The "append-only" table
+had no revoked grants or trigger, immutability was convention only, and the handler never
+checked invoice ownership (Rule 2) before updating or reading history.
+
+```ts
+const [after] = await ctx.db.update(invoices).set({ ...patch }).where(eq(invoices.id, id)).returning();
+// ...build diff...
+await ctx.db.insert(auditLogs).values({ invoiceId: id, userId, action: "updated", changes });
+// two separate awaits: if the insert fails, the invoice change is already committed
+```
+
+It compounded with `serial` (enumerable) ids, `timestamp` not `timestamptz` driven by
+app-side `new Date()` (Rule 6), `amount` diffed and stored as a float (Rule 5), an untyped
+`jsonb` diff capturing raw before/after values without redaction (Rules 8, 9), `ctx.auth.userId`
+used with no null check, a plain `throw new Error` instead of `TRPCError`, and an unbounded
+unpaginated `history` query.
+
+**Failure class (confirmed).** A generated audit log looks correct and compiles, but the
+record silently diverges from reality: the entry is written outside the change's transaction,
+the table is mutable in practice, the actor is unverified, and sensitive raw values land in an
+untyped diff. The value of an audit log is atomicity and immutability — exactly what the naive
+run drops.
 
 ---
 

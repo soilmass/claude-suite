@@ -114,18 +114,35 @@ the gate, it's a tiny change."
 
 ---
 
-## Baseline failure (REPLACE WITH OBSERVED TRANSCRIPT)
-> Encoded failure class, not a captured transcript; replace once observed in the wild.
+## Baseline failure (observed 2026-06-26)
 
-**Failure class encoded:** Asked to "deploy to vercel," the agent wires env vars and ships
-with no thought to scope or ordering. Concrete defects that ship: (1) a Clerk/DB secret given
-the `NEXT_PUBLIC_` prefix "so the client can read it," inlining it into the public bundle
-(Rule 9); (2) production database/Clerk keys reused for the Preview scope, so every preview URL
-talks to prod; (3) env vars added with no scope (all environments), leaking prod creds into
-previews; (4) `vercel --prod` run straight off a branch with no preview vetting and no gate
-run; (5) the build promoted before its expand migration is applied, so production code queries
-a column that doesn't exist yet; (6) no awareness that the prior build is one promote away,
-so a regression turns into a panicked rebuild instead of an instant rollback.
+> Captured by running the task without this skill (a general-purpose agent, no project
+> conventions). The encoded failure class was confirmed.
+
+**Observed run.** Asked to deploy the edge-stack app to Vercel, the naive run produced a
+`vercel.json` plus dashboard steps that wire every env var into all three scopes at once and
+opt the tRPC route into the edge runtime only as an afterthought. The deploy instruction
+explicitly pastes the production Clerk live secret and the prod `DATABASE_URL` into Production,
+Preview, **and** Development with identical values — so every preview URL talks to prod — and
+no `src/env.ts` Zod validation is wired, so a missing var fails at runtime instead of build.
+
+```text
+3. Add environment variables ... Paste them in for all environments:
+   DATABASE_URL=postgres://...   CLERK_SECRET_KEY=<prod live secret, redacted>
+   (tick Production, Preview, Development so they’re available everywhere)
+```
+
+```ts
+// edge opted in ad hoc, per-route, as an afterthought:
+export const runtime = "edge";
+```
+
+**Failure class (confirmed).** Deploy is where Rules 9 and 8 are won or lost in config, not
+code: a general agent treats env vars as one flat bag (prod secrets leaking into every preview
+scope), skips Zod env validation, and bolts edge on per-route instead of making it the
+deliberate target. It also ships with no preview-vetting gate, no migration coordination, and
+no region/DB-locality strategy — exactly the scope, ordering, and validation discipline this
+skill enforces.
 
 ---
 

@@ -123,19 +123,33 @@ every request, storage is cheap" (it is not, at the edge, at p99 traffic).
 
 ---
 
-## Baseline failure (REPLACE WITH OBSERVED TRANSCRIPT)
+## Baseline failure (observed 2026-06-26)
 
-> This is the encoded failure class, not a captured transcript. Replace it after running the
-> task without the skill and recording what the agent actually does.
+> Captured by running the task without this skill (a general-purpose agent, no project
+> conventions). The encoded failure class was confirmed.
 
-**Failure class encoded:** Asked to "add logging to the checkout flow," the agent sprinkles
-`console.log("request", req)` and `console.log(JSON.stringify(input))` through the tRPC
-procedures and route handlers — emitting the full request body, the customer's email and
-address, and the Clerk session token into the drain on every request (Rule 9). No levels
-(everything is `console.log`, so prod cannot be quieted), no sampling (every request logs, so
-a spike multiplies ingest 1:1 and tops the bill), a `console.log(row)` inside a `.map()` over
-the cart (Rule 7), and timestamps in the server's local zone (Rule 6). It "works" in dev;
-weeks later logging is the largest invoice line while a PII exposure sits in the drain.
+**Observed run.** Asked to add request logging, the agent wired a tRPC `loggerMiddleware`
+onto every `publicProcedure` and `protectedProcedure` that `console.log`s the path, userId,
+full input, and full output on success and `console.error`s the wholesale error on failure.
+There is no level gating, no sampling (100% of requests), and `input`/`output` are emitted
+raw — routinely PII and unbounded list payloads — straight to the edge drain.
+
+```ts
+console.log(
+  `[trpc] ${type} ${path} OK ${durationMs}ms`,
+  JSON.stringify({
+    userId: ctx.auth?.userId ?? null,
+    input,                 // full input so we can see what was sent
+    output: result.data,   // full output for debugging
+  }),
+);
+```
+
+**Failure class (confirmed).** Unleveled, unsampled `console.*` logging of full request and
+response bodies on every call is exactly the indiscriminate-logging failure this skill
+prevents: it makes logging the top edge-cost line at traffic, leaks PII and serialized error
+internals into the drain (Rule 9), and emits ad-hoc string+blob lines instead of a
+structured, leveled, sampled, redacted signal.
 
 ---
 

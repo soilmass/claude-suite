@@ -85,20 +85,30 @@ allocation; the sibling skills write the tests.
   (static rule check; this skill makes the same rules provable by test).
 - **Hands off:** the actual test authoring to the three sibling test skills above.
 
-## Baseline failure (REPLACE WITH OBSERVED TRANSCRIPT)
-> Encoded failure class, not a captured transcript; replace once observed in the wild.
+## Baseline failure (observed 2026-06-26)
 
-**Failure class encoded:** Asked to "add tests for this feature," the agent produces a test
-suite misallocated across the pyramid. Concrete defects that ship: (1) the tRPC procedure is
-tested with every dependency mocked, so the test passes even though the real query has no
-**ownership check** (Rule 2 unproven) — the #1 vulnerability class is invisible to the suite;
-(2) money and date logic that is pure and cheap to unit-test is instead exercised only through
-a slow e2e, so a float-rounding bug (Rule 5) is buried under browser flake; (3) a single
-sprawling Playwright test asserts everything, so it is brittle, slow, and re-run-on-every-PR
-expensive; (4) the **four states** (Rule 4) are "tested" by clicking through the UI rather than
-asserting the render branches at the component layer; (5) no test exercises the N+1 path
-(Rule 7) because nothing hits a real DB. Coverage numbers look healthy; the failures that
-reach production are exactly the ones nothing pinned.
+> Captured by running the task without this skill (a general-purpose agent, no project
+> conventions). The encoded failure class was confirmed.
+
+**Observed run.** Asked to plan tests for a "projects" CRUD + create form + list view, the
+naive agent produced a tidy, well-layered plan (unit / integration / component / e2e) that
+*looked* complete but pinned the wrong things. The only authorization test was "no `userId`
+throws UNAUTHORIZED" — it never proves user A cannot read or mutate user B's row (Rule 2,
+the #1 vulnerability class, untested). It also skipped the explicit error state (Rule 4),
+asserted no query-count (Rule 7), tested an edge stack against a local postgres/sqlite that
+doesn't match the Neon/Turso driver, and never verified the form and tRPC input share one Zod
+schema (Rule 8 drift).
+
+```
+//   auth:
+//   ✓ calling a protected procedure with no userId throws UNAUTHORIZED
+//   (no test that user A is denied user B's project)
+```
+
+**Failure class (confirmed).** A plausible, layered plan hides misallocation: the cheap,
+high-blast-radius rules (ownership, the four states, query-count, shared-schema, money/UTC)
+go untested while coverage looks healthy. The defects that reach production are exactly the
+ones nothing pinned — authentication gets a test, authorization does not.
 
 ## Examples
 

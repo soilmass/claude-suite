@@ -115,20 +115,31 @@ CI will sort it out."
 
 ---
 
-## Baseline failure (REPLACE WITH OBSERVED TRANSCRIPT)
+## Baseline failure (observed 2026-06-26)
 
-> This is the encoded failure class, not a captured transcript. Replace it after running the
-> task without the skill and recording what the agent actually does.
+> Captured by running the task without this skill (a general-purpose agent, no project
+> conventions). The encoded failure class was confirmed.
 
-**Failure class encoded:** Asked to "add a screenshot test for the dashboard," the agent writes
-`await expect(page).toHaveScreenshot()` over the whole page against live tRPC data — so every run
-diffs because the "updated 2m ago" label and the real row count move. To "fix the flake" it sets
-`maxDiffPixelRatio: 0.4`, which now hides genuine layout shifts. Animations and web fonts are not
-settled, so the first frame and FOUT cause off-by-anti-aliasing noise. Baselines are generated on
-the author's macOS and fail instantly in the Linux CI runner (different font hinting). When CI is
-red, the agent runs `--update-snapshots` and commits the lot unreviewed — baking the current
-broken spacing in as the new truth. Only the success state is shot; loading/empty/error and dark
-mode are never captured (Rule 4 unmet). The suite is simultaneously flaky and blind.
+**Observed run.** The naive agent produced a working Playwright config and spec but stopped at
+"animations disabled" for determinism — it never froze the clock, stubbed tRPC data, or waited
+for `document.fonts.ready`, so any "now"/relative-time/web-font render flakes. It full-page-shot
+whole routes instead of per-component locators, captured only the default success instance (not
+Rule 4's loading/empty/error states), ran a single Desktop Chrome viewport with no dark-mode
+variant, generated baselines on a dev machine that will not match the Ubuntu CI runner's font
+hinting, and picked an unjustified tolerance:
+
+```ts
+expect: { toHaveScreenshot: { maxDiffPixelRatio: 0.01, animations: "disabled" } },
+// ...
+await expect(page).toHaveScreenshot(`${c.name}.png`, { fullPage: true });
+```
+
+**Failure class (confirmed).** Snapshot code that treats "disable animations" as the whole of
+determinism — leaving the clock, data, and fonts unpinned — produces a suite that is flaky
+(false reds on volatile content) and blind at once: full-page scope, one viewport/theme, and
+success-only capture let real regressions through, while host-vs-CI font rendering guarantees
+mismatched baselines. This skill forces frozen-clock + stubbed-data + fonts-ready determinism,
+per-component scope, the four states and theme variants, and an OS-pinned baseline.
 
 ---
 

@@ -112,18 +112,33 @@ is simpler."
 
 ---
 
-## Baseline failure (REPLACE WITH OBSERVED TRANSCRIPT)
-> Encoded failure class, not a captured transcript; replace once observed in the wild.
+## Baseline failure (observed 2026-06-26)
 
-**Failure class encoded:** Asked to "get us ready to launch," the agent ships the deploy and
-never touches billing. Concrete defects that ship: (1) no Vercel Spend Management cap, so a
-recursive `fetch` or a crawler runs function invocations unbounded for a full billing period;
-(2) the DB has no consumption limit, so a missing index (Rule 7 / `index-strategy`) drives
-rows-read past the plan into overage; (3) Sentry left at default with no spend cap or spike
-protection, so an error storm bills per-event without limit; (4) one budget covering all
-environments, with every preview deploy behind every PR metered like production; (5) the only
-"alert" is the provider's default email to an unmonitored owner inbox, seen days after the
-spend. The team learns the numbers from the invoice — exactly what the spine forbids.
+> Captured by running the task without this skill (a general-purpose agent, no project
+> conventions). The encoded failure class was confirmed.
+
+**Observed run.** Asked to prevent a surprise bill, the naive agent produced a plan whose hard
+caps were all manual dashboard clicks — "set a pause/notify cap" in Vercel, "billing email
+alerts" in Neon — with nothing codified, version-controlled, per-environment, or proven set
+before launch. Its only in-repo artifact was Upstash rate limiting, which adds another paid
+service and is a soft guard, not a bill ceiling. The closing note made the manual-click nature
+explicit:
+
+```
+// 1) Dashboard-side caps (do these in the UI — fastest, most effective):
+//    - Vercel: Settings → Billing → "Spend Management" → set a pause/notify cap (e.g. $50).
+//    - Neon (or Turso): Project → Settings → ... enable "scale to zero", and turn on
+//      usage/billing email alerts.
+```
+
+There was no per-environment cap (preview deploys can silently rack up usage), no CI or
+launch-checklist gate proving caps were actually set, and no alert-delivery verification.
+
+**Failure class (confirmed).** Spend caps described as one-time dashboard clicks are not
+reproducible, not reviewed, not proven before launch, and silently uniform across
+environments. This skill forces a hard cap on every metered provider, a per-environment budget
+split, a graduated alert ladder routed to a watched channel, and a delivery test — so the team
+learns the numbers from the tripwire, not the invoice.
 
 ---
 

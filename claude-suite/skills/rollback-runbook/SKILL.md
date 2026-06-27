@@ -130,21 +130,33 @@ data back"; "it's an emergency, skip the backup check."
 
 ---
 
-## Baseline failure (REPLACE WITH OBSERVED TRANSCRIPT)
+## Baseline failure (observed 2026-06-26)
 
-> This is the encoded failure class, not a captured transcript. Replace it after running the
-> task without the skill and recording what the agent actually does.
+> Captured by running the task without this skill (a general-purpose agent, no project
+> conventions). The encoded failure class was confirmed.
 
-**Failure class encoded:** Asked to "roll back the last deploy," the agent treats rollback as a
-single undo. Concrete defects that ship: (1) it runs `drizzle-kit`/the migration `down` blindly
-without reading what it drops, re-adding a column as empty and silently destroying the rows that
-were in it; (2) it promotes the prior production build while the bad deploy's contract migration
-already dropped a column, so the old code `SELECT`s a column that no longer exists and 500s on
-every request; (3) it reverses an *additive* (expand) schema change that was harmless, adding
-risk for no benefit; (4) it never checks whether the deploy crossed the irreversibility boundary,
-so a case that needed point-in-time restore-from-backup gets a fabricated-empty-column "down"
-instead and the data is permanently lost; (5) it leaves the drizzle migrations journal out of
-sync with the live schema, so the next forward deploy mis-detects state.
+**Observed run.** Asked to write a production rollback runbook, the naive output produced a clean
+Vercel-promote + `git revert` flow but its migration-reversal section was fabricated: it invented
+Drizzle down-SQL files and a `drizzle-kit drop` "down runner" that do not exist, and it reversed
+the schema with a TCP `psql` connection the edge/serverless HTTP stack never has.
+
+```bash
+# generate-down was created with the migration; apply the down
+drizzle-kit drop            # drops last migration entry
+# then run the down SQL for that migration against prod
+psql $DATABASE_URL -f drizzle/<timestamp>_down.sql
+```
+
+`drizzle-kit drop` only removes a journal entry — it runs no down SQL, and no `_down.sql` file is
+generated to point `psql` at. Expand-contract appears only as a passing prevention note, and the
+irreversible (contract) case is demoted to a vague "restore from backup" afterthought with no
+PITR target or pre-deploy-snapshot check.
+
+**Failure class (confirmed).** Treating "rollback" as a single undo collapses the code half
+(instant, pointer-based) and the schema half (slow, sometimes irreversible) into one step, then
+papers over the schema half with non-existent tooling and wrong-stack commands. This skill forces
+the code-vs-schema split, checks the contract boundary before any `down`, and routes the lossy
+case to point-in-time restore instead of a fabricated empty-column reversal.
 
 ---
 

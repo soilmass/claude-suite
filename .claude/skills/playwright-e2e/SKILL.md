@@ -106,19 +106,33 @@ is fine."
 
 ---
 
-## Baseline failure (REPLACE WITH OBSERVED TRANSCRIPT)
+## Baseline failure (observed 2026-06-26)
 
-> Encoded failure class per the suite's design; replace with a real run-without-the-skill
-> transcript before treating this as evaluated.
+> Captured by running the task without this skill (a general-purpose agent, no project
+> conventions). The encoded failure class was confirmed.
 
-**Failure class encoded:** Asked to "add an e2e test for the dashboard flow," the agent
-produces: a spec that signs in by `page.fill()`-ing the Clerk form every test (no testing token,
-so Clerk's bot detection blocks it intermittently and no `storageState` reuse, so it is slow);
-`await page.waitForTimeout(3000)` sprinkled to "fix" the resulting flake; assertions that select
-`.css-1x2y3` class names that break on the next restyle; coverage of the **success path only** —
-the loading spinner, empty state, and error fallback (Rule 4) are never rendered or asserted
-because nothing intercepts the tRPC call; and the Clerk publishable/secret keys pasted inline
-pointing at the production instance. It is green on the author's machine and flaky in CI.
+**Observed run.** Asked to write an e2e test for sign-in plus create-a-post, the naive agent
+drove the real Clerk hosted UI per test with raw `process.env` creds, papered over the
+resulting flake with hardcoded `page.waitForTimeout()` sleeps instead of web-first assertions
+or `waitForResponse` on the tRPC mutation, selected by Clerk's internal markup
+(`name=`/`has-text`) rather than roles, and asserted the success path only — no
+loading/empty/error states, no DB cleanup of the `Date.now()` post it created.
+
+```ts
+await page.waitForTimeout(2000);
+await page.fill('input[name="identifier"]', EMAIL);
+await page.click('button:has-text("Continue")');
+// ...
+await page.click('button[type="submit"]');
+await page.waitForTimeout(2000); // give the mutation time to round-trip
+await expect(page.locator(`text=${title}`)).toBeVisible();
+```
+
+**Failure class (confirmed).** Generated e2e specs flake because they sleep instead of
+awaiting real network/DOM state, drive Clerk's bot-protected UI per test instead of using
+testing tokens + a reused `storageState` session, bind to brittle markup selectors, and prove
+only the happy path while leaving real state behind. They go green locally and rot into
+ignored CI flake.
 
 ---
 

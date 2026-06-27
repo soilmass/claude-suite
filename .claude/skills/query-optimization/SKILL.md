@@ -114,22 +114,31 @@ fewer trips, measured — not cleaner-looking SQL.
 
 ---
 
-## Baseline failure (REPLACE WITH OBSERVED TRANSCRIPT)
+## Baseline failure (observed 2026-06-26)
 
-> This is the encoded failure class, not a captured transcript. Replace it after running the
-> task without the skill and recording what the agent actually does.
+> Captured by running the task without this skill (a general-purpose agent, no project
+> conventions). The encoded failure class was confirmed.
 
-**Failure class encoded:** Asked "this query is slow, optimize it," the agent reads the
-Drizzle/SQL text and reasons about it abstractly. Specific defects that ship: (1) it adds an
-index on a column the planner will never use because the predicate is non-sargable
-(`where(sql\`lower(email) = \${e}\`)` with no expression index), and never runs EXPLAIN to
-notice; (2) it "optimizes" against the dev seed where every plan is a seq scan, so the index
-is invisible and it declares victory on no evidence; (3) it runs `EXPLAIN ANALYZE` on an
-`UPDATE` to "test it" and silently mutates rows; (4) it reads only the top plan line and
-misses that the cost is a `Sort` spilling to disk fixed by a matching index `ORDER BY`, not
-the join it blamed; (5) while rewriting the `where` it drops the
-`eq(t.ownerId, ctx.auth.userId)` predicate — faster, and a Rule 2 ownership leak. None are
-measured before/after, so none are proven.
+**Observed run.** Asked to optimize a slow `orders.list` query, the agent diagnosed purely
+from the SQL shape: it proposed a composite `(user_id, status, created_at)` index inferred
+from the `WHERE`+`ORDER BY`, added a `LIMIT`, and only *suggested* running EXPLAIN ANALYZE
+afterward to confirm — never measuring the actual plan, row counts, or before/after timing
+first. The naive fix even self-contradicted on index direction:
+
+```ts
+// query sorts DESC, but the Drizzle index is ASC; raw-SQL note says DESC — they disagree
+byUserStatusCreated: index("orders_user_status_created_idx").on(
+  t.userId, t.status, t.createdAt,   // no DESC → not guaranteed to eliminate the Sort
+),
+// ...
+.orderBy(desc(orders.createdAt)).limit(input.limit)   // plain LIMIT, no cursor
+```
+
+**Failure class (confirmed).** The agent "optimizes" by reading the query text and adding an
+index by inference, never capturing the real plan (`EXPLAIN ANALYZE` on production-shaped
+data) to confirm the bottleneck or prove the fix — so "faster" is asserted, not measured, and
+the index direction, projection, and pagination shape are guesses. This skill forces
+plan-first diagnosis and before/after measurement on representative data.
 
 ---
 

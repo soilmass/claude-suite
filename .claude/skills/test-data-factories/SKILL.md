@@ -96,22 +96,28 @@ cast it for now", "every fixture can share `userId: 'test'`", "dollars are fine 
 - **Hands off:** to `migration-author` when a factory won't type-check because the schema must
   change first.
 
-## Baseline failure (REPLACE WITH OBSERVED TRANSCRIPT)
+## Baseline failure (observed 2026-06-26)
 
-> This is the encoded failure *class* this skill prevents, not a captured transcript. Replace
-> it with a real before/after once one is observed.
+> Captured by running the task without this skill (a general-purpose agent, no project
+> conventions). The encoded failure class was confirmed.
 
-**Failure class encoded:** Without this skill, generated test data typically ships:
+**Observed run.** Asked to build test factories for `User`/`Order`, the naive run hand-wrote
+`type User`/`type Order` to "mirror the DB rows" instead of deriving them from Drizzle, then
+modeled `Order.total` as a float dollar amount and hand-typed the status union — three
+independent drift/convention breaks in one file.
 
-- Hand-written object literals (`const user = { id: 1, name: 'Test' } as User`) that omit
-  half the columns and lie about the rest, kept alive by an `as` cast (rule 1 broken).
-- Fixtures that stay green after a schema column rename because nothing ties them to
-  `$inferInsert` — the drift surfaces only as a runtime failure much later.
-- `price: 9.99` floats and `createdAt: '2026-01-01'` local strings copied into every test
-  (rules 5, 6).
-- Every fixture sharing `userId: 'user_1'`, so an ownership test passes for the wrong reason
-  (rule 2 not actually exercised).
-- A "factory" that also inserts into the DB, coupling pure unit tests to a live connection.
+```ts
+export type Order = {
+  status: "pending" | "paid" | "shipped" | "cancelled"; // duplicated from the DB enum
+  total: number; // dollars
+};
+total: Number(faker.commerce.price({ min: 10, max: 500 })), // 49.99 — float money
+```
+
+**Failure class (confirmed).** Without this skill, generated fixtures define their own types
+in parallel with the schema, so a column rename or enum change leaves the tests green while
+the shape silently drifts (rule 1), and they casually carry float money (rule 5) and other
+ungrounded conventions because nothing anchors a default to the live `$inferInsert` shape.
 
 ## Examples
 

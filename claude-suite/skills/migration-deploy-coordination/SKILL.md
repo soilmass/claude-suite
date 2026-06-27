@@ -130,20 +130,27 @@ deploy is atomic so old code is gone instantly"; "it's a tiny table, I'll rename
 
 ---
 
-## Baseline failure (REPLACE WITH OBSERVED TRANSCRIPT)
+## Baseline failure (observed 2026-06-26)
 
-> This is the encoded failure class, not a captured transcript. Replace it after running the
-> task without the skill and recording what the agent actually does.
+> Captured by running the task without this skill (a general-purpose agent, no project
+> conventions). The encoded failure class was confirmed.
 
-**Failure class encoded:** Asked to "rename `projects.name` to `projects.title` and deploy it,"
-the agent generates a correct migration (`ALTER TABLE ... RENAME COLUMN`), updates schema, tRPC
-procedures, Zod schema, and form to `title`, and ships everything in one release. CI is green.
-The defects: rename and code go out together, so during the rolling edge rollout the previous
-code version — still serving in other regions — does `SELECT name` against a table that no
-longer has it and 500s every request until rollout completes. The rename is non-additive but
-treated as atomic: no expand step, no dual-write window, no backfill placement (data "moved" via
-a single locking DDL). And the old column is gone the instant the migration applies, so code
-rollback is impossible — recovery is restore-from-backup, with no one having marked that cliff.
+**Observed run.** Asked to rename `users.name` to `full_name` and deploy it, the agent updated
+the Drizzle schema, generated a single in-place `RENAME COLUMN` migration, and shipped it
+together with the tRPC router and component changes in one PR — no expand step, no dual-write,
+no marked rollback boundary.
+
+```sql
+-- drizzle/0007_rename_name_to_full_name.sql
+ALTER TABLE "users" RENAME COLUMN "name" TO "full_name";
+```
+
+**Failure class (confirmed).** A non-additive rename shipped atomically with its consuming code:
+during the rolling edge rollout the still-serving old code version does `SELECT name` against a
+table that no longer has the column and 500s every request until propagation completes, and
+because the old column is gone the instant the DDL applies, code rollback cannot recover — the
+irreversibility cliff went unmarked. This is exactly the cross-deploy ordering this skill forces
+into expand → backfill → switch → contract.
 
 ---
 

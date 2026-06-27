@@ -99,21 +99,35 @@ Refuse these rationalizations: "the ownership check is obviously there, I read i
 - **Runs against:** a feature's `appRouter` sub-router and its `protectedProcedure`s.
 - **Hands off:** `rule-audit` (static rule 2/8 scan complements these runtime proofs).
 
-## Baseline failure (REPLACE WITH OBSERVED TRANSCRIPT)
+## Baseline failure (observed 2026-06-26)
 
-> This is the encoded failure *class*, not a captured transcript. Replace with a real one
-> when observed.
+> Captured by running the task without this skill (a general-purpose agent, no project
+> conventions). The encoded failure class was confirmed.
 
-**Failure class encoded:** Without this skill, generated tRPC tests typically ship:
-- Only the owner case — the procedure's `.where(eq(table.userId, ctx.auth.userId))` is never
-  exercised, so deleting that filter (rule 2) keeps every test green.
-- `await expect(...).rejects.toThrow()` with no `code` assertion — a `NOT_FOUND` from an
-  unrelated typo passes a test meant to prove `FORBIDDEN`.
-- The same `userId` for the "owner" and "other user" fixtures, so the attacker case is
-  silently testing the owner.
-- The resolver/service function called directly instead of through the caller, skipping the
-  Zod input parse (rule 8) and the `protectedProcedure` auth wrapper entirely.
-- No unauthenticated case, so a procedure accidentally left on `publicProcedure` still passes.
+**Observed run.** The agent wrote a Vitest file for `profile.updateProfile` that mocks the
+Drizzle `db` entirely with a chainable stub and hand-rolls the ctx, then asserts only that
+`db.update` was *called* — never that the `WHERE` clause scopes to `ctx.auth.userId`. The
+ownership filter is never exercised: a procedure that updated any row, or no user filter at
+all, would pass green. It also leaned on `any` casts and `@ts-expect-error` to build the
+mock chain and ctx, breaking the type chain (rule 1).
+
+```ts
+const where = vi.fn().mockReturnValue({ returning });
+const set = vi.fn().mockReturnValue({ where });
+(db.update as any).mockReturnValue({ set });
+// ...
+expect(db.update).toHaveBeenCalledTimes(1);
+expect(set).toHaveBeenCalledWith(
+  expect.objectContaining({ name: "New Name", bio: "hello world" }),
+);
+// never asserts the .where() argument scopes to ctx.auth.userId
+```
+
+**Failure class (confirmed).** A mocked-db test that asserts the call happened rather than
+the ownership predicate proves nothing about rule 2 — the #1 vulnerability class ships green.
+This skill forces a real test DB with distinct owner/non-owner fixtures driven through the
+caller, so the `.where(userId)` filter is actually exercised and a dropped filter turns a
+test red.
 
 ## Examples
 

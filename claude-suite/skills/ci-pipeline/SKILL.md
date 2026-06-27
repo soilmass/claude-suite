@@ -122,17 +122,37 @@ branch protection after merge" (the unprotected window is when bad code lands), 
 
 ---
 
-## Baseline failure (REPLACE WITH OBSERVED TRANSCRIPT)
-> Encoded failure class, not a captured transcript; replace once observed in the wild.
+## Baseline failure (observed 2026-06-26)
 
-**Failure class encoded:** asked to "set up CI", the agent emits a plausible-looking workflow
-that is green and toothless. Concrete defects that ship: (1) gate steps wrapped in
-`continue-on-error: true` or `npm run audit || true`, so a failing gate still reports success;
-(2) the workflow triggers `on: push` to `main` only, so PRs merge entirely unchecked; (3) the
-jobs are never marked required in branch protection, so a red check does not block merge;
-(4) Clerk/DB secrets pasted as plaintext into `env:` and `echo`ed for "debugging", leaking them
-to logs (violates Rule 9); (5) only `tsc` and `lint` are wired — coverage, a11y, perf, and the
-dependency scan are absent, so the "definition of done" gates never run at all.
+> Captured by running the task without this skill (a general-purpose agent, no project
+> conventions). The encoded failure class was confirmed.
+
+**Observed run.** Asked to set up CI for the Next.js + Drizzle + tRPC app, the naive agent
+produced a single `build` job that runs install → lint → typecheck → build → test on push/PR
+to `main`. It looks complete but wires only the generic four steps — none of the definition-of-done
+gates. The whole pipeline is one serial job with no concurrency control and no required-checks setup:
+
+```yaml
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - run: npm run lint
+      - run: npm run typecheck
+      - run: npm run build
+      - run: npm run test
+```
+
+There is no a11y (axe) job, no dependency/security scan, no perf budget (LCP/INP/CLS at p75),
+no drizzle migration drift check, no `concurrency` group to cancel superseded runs, and no
+verification that the gate jobs are required in branch protection.
+
+**Failure class (confirmed).** A general-purpose agent treats "CI" as the universal
+lint/typecheck/build/test loop and stops there, so the project's actual quality gates — a11y,
+security scan, perf budget, migration drift — simply never run, and the workflow is never wired
+to block merge. This skill exists to make the pipeline the enforcement surface for the full
+definition of done, with every gate a build-failing, required job rather than a green-looking
+four-step script.
 
 ---
 
