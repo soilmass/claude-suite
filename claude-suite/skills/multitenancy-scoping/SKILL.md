@@ -122,20 +122,36 @@ parent is scoped so the join is safe."
 
 ---
 
-## Baseline failure (REPLACE WITH OBSERVED TRANSCRIPT)
+## Baseline failure (observed 2026-06-26)
 
-> This is the encoded failure class, not a captured transcript. Replace it after running the
-> task without the skill and recording what the agent actually does.
+> Captured by running the task without this skill (a general-purpose agent told to implement
+> as a typical dev would, with no project conventions). The encoded failure class was confirmed
+> — and it surfaced the most dangerous variant: the read was scoped, the write was not.
 
-**Failure class encoded:** Asked to "list the team's invoices and let a member archive one,"
-the agent (1) writes `db.query.invoices.findMany({ where: eq(invoices.status, "open") })`
-with no `org_id` predicate, returning every tenant's open invoices (Rule 2 at collection
-scale); (2) archives with `db.update(invoices).set({ archivedAt }).where(eq(invoices.id,
-input.id))` — id only, so any member of any org can archive any invoice by id; (3) reads the
-tenant from `input.orgId` "to avoid an extra context field," letting a caller forge it
-(Rule 8); (4) joins `invoices` to `lineItems` with the parent scoped but the child join
-unconstrained, re-leaking through the relation; (5) ships after testing with a single seeded
-org, where nothing is cross-tenant and the leak is invisible.
+**Observed run.** Prompt: "list the current org's invoices, and update an invoice's amount by
+its id." With no skill the agent produced:
+
+```ts
+list: protectedProcedure.query(async ({ ctx }) =>
+  ctx.db.select().from(invoices).where(eq(invoices.orgId, ctx.auth.orgId))),   // scoped ✓
+
+update: protectedProcedure
+  .input(z.object({ id: z.string(), amount: z.number() }))
+  .mutation(async ({ ctx, input }) =>
+    ctx.db.update(invoices).set({ amount: input.amount })
+      .where(eq(invoices.id, input.id)).returning()),                          // id ONLY ✗
+```
+
+Its own note: *"`list` filters by `orgId`; `update` looks up the invoice by its `id` alone."*
+This is the cross-tenant IDOR (Rule 2 at scale) **verbatim** — and instructively, the agent
+*did* scope the read, then dropped the `orgId` predicate on the write. Any member of org A can
+change any invoice in org B by guessing an id. (Bonus: `amount: z.number()` is also float
+money, Rule 5.) With one seeded org in dev, nothing is cross-tenant and the hole is invisible.
+
+**Failure class (confirmed).** A query (especially a write) missing the
+`and(eq(id), eq(orgId))` predicate; `orgId` read from client input instead of the verified
+session; unscoped child joins re-leaking through a relation; validated only against a single
+tenant.
 
 ---
 

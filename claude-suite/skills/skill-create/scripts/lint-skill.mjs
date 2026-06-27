@@ -28,7 +28,7 @@ const REQUIRED = [
   "## When NOT to Use",
   "## Procedure",
   "## Composes With",
-  "## Baseline failure (REPLACE WITH OBSERVED TRANSCRIPT)",
+  "## Baseline failure", // matches the placeholder heading OR an evaluated "## Baseline failure"
   "## Examples",
   "## Edge Cases",
   "## References",

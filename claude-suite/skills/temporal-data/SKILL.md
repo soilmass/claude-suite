@@ -131,22 +131,35 @@ the API returns local time."
 
 ---
 
-## Baseline failure (REPLACE WITH OBSERVED TRANSCRIPT)
+## Baseline failure (observed 2026-06-26)
 
-> This is the encoded failure class, not a captured transcript. Replace it after running
-> the task without the skill and recording what the agent actually does.
+> Captured by running the task without this skill (a general-purpose agent told to implement
+> as a typical dev would, with no project conventions). The encoded failure class was confirmed.
 
-**Failure class encoded:** Asked to "add a scheduled-at field and show it to the user," the
-agent defines `scheduledAt: timestamp('scheduled_at')` — **without** `{ withTimezone: true
-}` — so Postgres stores zoneless `timestamp`, dropping the offset. It writes
-`new Date(input.scheduledAt)` straight from a tRPC input with no Zod coercion (Rule 8) and
-stores it. In the procedure it "helpfully" converts to local time with `.toLocaleString()`
-so the API returns a pre-formatted string — breaking the type chain (Rule 1) and baking the
-*server's* unstable edge-runtime zone into the payload. For a "block out a date range"
-feature it stores `start`/`end` and checks overlap in app code with an off-by-one inclusive
-`<=` that races under concurrency and double-books. For "repeat weekly" it inserts 520 rows
-for ten years of occurrences instead of one RRULE. Every bug renders correctly in the
-author's UTC-ish environment and shifts by hours for any user in another zone.
+**Observed run.** Prompt: "add an `events` table with title, start time, end time, and a query
+for upcoming events." With no skill the agent produced:
+
+```ts
+export const events = pgTable("events", {
+  id: serial("id").primaryKey(),
+  title: text("title").notNull(),
+  startTime: timestamp("start_time").notNull(),  // no withTimezone
+  endTime: timestamp("end_time").notNull(),      // no withTimezone
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+// upcoming: where(gt(events.startTime, new Date()))
+```
+
+Its own note: *"used Drizzle's `timestamp(...)` columns (plain `timestamp without time zone`),
+comparing against a JS `Date`."* That is the Rule 6 failure verbatim — zoneless `timestamp`
+drops the offset, and comparing a `timestamp without time zone` column against a JS `Date`
+silently mixes the server's (unstable, edge-runtime) zone into the boundary. Renders correctly
+in the author's zone; the "upcoming" filter shifts by hours for any user elsewhere.
+
+**Failure class (confirmed).** `timestamp(...)` without `{ withTimezone: true }`; raw
+`new Date(input)` from a tRPC input with no Zod coercion (Rule 8); pre-formatting to a string
+in the procedure (breaks Rule 1); range overlap checked in app code; recurrence expanded into
+N rows instead of an RRULE.
 
 ---
 

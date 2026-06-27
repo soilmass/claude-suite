@@ -130,20 +130,33 @@ a cent doesn't matter."
 
 ---
 
-## Baseline failure (REPLACE WITH OBSERVED TRANSCRIPT)
+## Baseline failure (observed 2026-06-26)
 
-> This is the encoded failure class, not a captured transcript. Replace it after running the
-> task without the skill and recording what the agent actually does.
+> Captured by running the task without this skill (a general-purpose agent told to implement
+> as a typical dev would, with no project conventions). The encoded failure class was confirmed.
 
-**Failure class encoded:** Asked to "add a price to the product table and let users enter it,"
-the agent writes `price: real('price')` (or `numeric` consumed as `parseFloat`), stores raw
-dollars as a float, and renders with `` `$${price.toFixed(2)}` ``. The Zod input is
-`z.number()` with no transform, so `19.99` round-trips through IEEE-754 and `0.1 + 0.2`-class
-drift accumulates across totals. There is **no currency column** — the amount is a bare number
-assumed USD. A "split the bill three ways" feature does `Math.round(total / 3)` per share, so
-$10.00 splits into 3.33 × 3 = $9.99 and a cent vanishes. Display hardcodes `/ 100` (or
-`* 100` on input), which silently triples JPY and under-counts BHD. Every line passes
-type-check and renders correctly on $19.99, then mis-totals real orders at the edge.
+**Observed run.** Prompt: "add a `products` table with a name and a USD price, and a tRPC
+`create` mutation." With no skill the agent produced:
+
+```ts
+export const products = pgTable("products", {
+  id: serial("id").primaryKey(),
+  name: varchar("name", { length: 256 }).notNull(),
+  price: doublePrecision("price").notNull(), // USD
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+// create: publicProcedure.input(z.object({ name, price: z.number().positive() }))
+```
+
+Its own note: *"stored as a `doublePrecision` (floating-point) column holding the dollar
+amount."* That is the Rule 5 failure verbatim — money as an IEEE-754 float, dollars not minor
+units, no currency column — plus two collateral defects (`timestamp` without `withTimezone`,
+Rule 6; a `publicProcedure` create with no auth, Rule 2). It type-checks and renders fine on
+$19.99, then drifts on real totals.
+
+**Failure class (confirmed).** Float / `real` / `doublePrecision` / `numeric`-as-`parseFloat`
+money, a bare `z.number()` input with no minor-unit transform, no currency column (amount
+assumed USD), and `/ 100`-hardcoded display that mis-scales JPY/BHD.
 
 ---
 
