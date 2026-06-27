@@ -17,6 +17,25 @@ Format:
 
 ---
 
+## 2026-06-27 — typography-system folded into design-tokens (over-fit)
+**Decision:** The `typography-system` skill is **deprecated and deleted**; its residual value —
+applying reading-craft type defaults (bounded measure, `clamp()` fluid type, metric-matched
+`next/font` loading) **unconditionally** — is folded into `design-tokens`, which now owns the
+type system directly.
+**Context:** Two clean-room baseline captures (2026-06-26 generic framing, 2026-06-27 reading
+framing) showed the modern base model produces expert typography on its own; capture 2 closed
+capture 1's residual gaps unprompted. The skill fixed no reproducible base-model failure.
+**Rationale:** A skill must encode a reproducible failure (the building-skills discipline); this
+one did not. The only durable value — applying the reading defaults even when the prompt doesn't
+signal long-form — is a short rule, not a standalone skill.
+**Consequences:** `design-tokens` Procedure step 3 now decides type directly; every
+`typography-system` cross-reference (`layout-composition`, `design-gate`, `design-reviewer`,
+`vertical-slice`, `tokens.md`) redirects to `design-tokens`; the slug is removed from the
+`suite-audit` FOUNDATION allowlist. The sibling `design-gate` was RE-CONFIRMED and retained — its
+two captures proved the base model bundles concerns and never separates, and a gate's value is
+that consistency.
+**Decided by:** baseline-capture (two captures) + human sign-off
+
 ## 2026-06-26 — Edge runtime as the deployment target
 **Decision:** The application targets the Vercel **Edge runtime**.
 **Context:** The genesis fork named in the capability map ("is this edge-deployed — the

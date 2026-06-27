@@ -1,7 +1,7 @@
 # Visual hierarchy and density
 
 How to compose a layout a user can read in a glance, and how to tune its density to its job.
-Judgment, not a mechanical check. Pairs with `typography-system` (type carries much of the
+Judgment, not a mechanical check. Pairs with `design-tokens` (type carries much of the
 hierarchy) and feeds spacing decisions to `design-tokens`.
 
 ## The five tools of hierarchy

@@ -35,7 +35,7 @@ owns what those cannot see: the value is *on the scale*, the color is the *right
 *colorblind-safe*, the hierarchy *reads*, and the states are *crafted*.
 
 The token foundation and the four craft skills it gates against are
-`design-tokens` / `color-system` / `typography-system` / `layout-composition` / `motion-system`.
+`design-tokens` / `color-system` / `layout-composition` / `motion-system`.
 
 ---
 
@@ -61,7 +61,7 @@ The token foundation and the four craft skills it gates against are
    `layout-composition`. Name the fix: the specific token to use.
 
 3. **Type adherence.** Sizes resolve to the `--text-*` scale; body measure ≈ 45–75ch;
-   line-height tightens with size; ≤ 2 families. Cite `typography-system`.
+   line-height tightens with size; ≤ 2 families. Cite `design-tokens`.
 
 4. **Color role & harmony (mechanical where possible).** Colors are used by semantic role,
    not arbitrary tokens (a `danger` surface using the `info` token is a finding). Run
@@ -93,37 +93,31 @@ The token foundation and the four craft skills it gates against are
 
 ---
 
-## Baseline failure (observed 2026-06-26)
+## Baseline failure (observed — two captures, 2026-06-26 & 2026-06-27)
 
-> Captured by running the task without this skill (a general-purpose agent, no project
-> conventions): "review this dashboard card before merge — design-wise, ship or not?" given a
-> snippet with `p-[18px]`, `gap-[14px]`, `marginBottom: 30`, hardcoded `#3b82f6`/`#22c55e`
-> status colors, and bare `Loading...`/`No data` states. This is the **second weakest-justified**
-> design skill: a capable base model reviews design well ad-hoc. A **boundary** failure was confirmed.
+> Captured TWICE without this skill (fresh general-purpose agents, no project conventions),
+> reviewing two different flawed components. The second capture **confirms this gate's value**:
+> the base model reviews design well but never separates concerns. Recorded as observed.
 
-**Observed run.** The ad-hoc review was genuinely good — it caught the off-scale `p-[18px]`/
-`gap-[14px]`, the inline `marginBottom: 30` margin leak, the weak value hierarchy, the
-uncrafted bare states (and their CLS), the missing error state, and even currency formatting.
-It did **not** do the one thing this gate exists to enforce:
+**Both captures — strong ad-hoc reviews.** Capture 1 (a dashboard card) caught the off-scale
+`p-[18px]`/`gap-[14px]`, the inline-margin leak, weak hierarchy, and uncrafted states. Capture 2
+(a pricing component) caught off-grid `gap-[22px]`/`p-[19px]`/`width:300`/inline `#10b981`
+("not on any sensible spacing scale … exactly what drifts and rots"), the missing hierarchy
+emphasis, and ragged button alignment.
 
-```
-"1. The text colors fail WCAG AA contrast … ≈3.7:1 … fails the 4.5:1 floor"   ← led with this
-```
+**What both runs did NOT do (the confirmed pattern).** Each **bundled accessibility into the
+design verdict** — capture 2 leads a standalone "Accessibility (would fail WCAG AA)" block with
+contrast as the headline blocker — instead of **deferring** contrast to `a11y-gate`. Each mixed
+correctness (a money/format bug → `rule-audit` / `money-modeling`), a11y, system-adherence, and
+code quality into one undifferentiated list, with no stable structure and no defer-map. Coverage
+drifts run-to-run: capture 1 flagged empty-state craft explicitly; capture 2 framed the same
+class of issue as generic "drift."
 
-It **bundled accessibility conformance into the design verdict** — leading with contrast ratios
-and WCAG as the headline blockers — rather than **deferring** contrast to `a11y-gate` and
-separating *craft / system-adherence* from *conformance*. And with no repeatable checklist or
-defer-map, coverage is **run-dependent**: this run was thorough; nothing guarantees the next
-catches role-misuse or runs a CVD check.
-
-**Failure class (confirmed, boundary-shaped).** Not "can't review design" — "reviews design and
-a11y as one undifferentiated blob, inconsistently." The base model has no stable separation
-between the four gates and no guaranteed coverage, so the same review re-run drifts. This skill's
-value is the **systematic, repeatable adherence + craft pass with an explicit defer-map**
-(contrast → `a11y-gate`, hardcoding → `rule-audit`), not a claim the model is blind to design.
-**If a second capture shows the ad-hoc review stays this strong, consider folding this gate into
-the `design-reviewer` agent + `/gates` rather than a standalone skill** — record that call in
-`DECISIONS.md`.
+**Verdict (keep — confirmed across two captures).** A gate's job is *consistency and separation*,
+not capability — and two runs prove the base model has neither: it reviews everything as one blob
+and never routes a finding to its owning gate. This skill's value — a **repeatable adherence +
+craft pass with an explicit defer-map** (contrast → `a11y-gate`, hardcoding → `rule-audit`, money
+→ `money-modeling`) — is exactly what the ad-hoc review lacks. **Retained as the 4th done-time gate.**
 
 ---
 

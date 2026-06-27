@@ -32,7 +32,7 @@ A geometric-ish scale, not a linear one — perceived spacing needs bigger jumps
   component non-reusable and double-spaces when laid out.
 - **Spacing relates to the type scale.** Vertical rhythm (the gaps between text blocks) should be
   multiples of the line-height/base step so text and space share a rhythm — coordinate with
-  `typography-system`.
+  `design-tokens`.
 - **Spacing is a system, not a guess.** Every gap is a scale step. The moment you reach for `13px`
   to "make it line up," the real fix is on the scale (snap to 12 or 16).
 
@@ -43,7 +43,7 @@ A geometric-ish scale, not a linear one — perceived spacing needs bigger jumps
 - **Gutters and outer margins are scale steps** (e.g. 16/24 gutters, 24–64 margins), tightening
   with density and loosening on marketing surfaces.
 - **Content max-width tied to the measure.** Cap text containers at ≈60–75ch so lines stay
-  readable; the *page* can be wider than the *text*. This binds to `typography-system`'s measure.
+  readable; the *page* can be wider than the *text*. This binds to `design-tokens`'s measure.
 
 ## Grid vs Flexbox vs container queries
 

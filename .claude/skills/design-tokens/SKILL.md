@@ -22,11 +22,11 @@ metadata:
 # design-tokens
 
 The **orchestrating entry point** for the design foundation, and the **serializer** that
-emits it. The design decisions themselves live in four focused craft skills — `color-system`
-(the color theory), `typography-system` (the type system), `layout-composition` (grid and
-spacing), and `motion-system` (the motion language). This skill interrogates the load-bearing
-inputs, delegates each dimension to its craft skill, writes the result as Tailwind v4
-`@theme` CSS variables, and **will not ship a palette it hasn't contrast-checked.**
+emits it. The harder design decisions live in three focused craft skills — `color-system`
+(the color theory), `layout-composition` (grid and spacing), and `motion-system` (the motion
+language); **the type system this skill decides itself** (scale, measure, rhythm, font loading).
+It interrogates the load-bearing inputs, delegates the three dimensions above, writes the result
+as Tailwind v4 `@theme` CSS variables, and **will not ship a palette it hasn't contrast-checked.**
 
 High-interrogation, because the inputs are subjective and load-bearing: brand hue, mood,
 existing brand colors, light/dark intent. Guessing these produces a confident wrong palette.
@@ -78,9 +78,14 @@ type-safety"; "hex is fine."
    names. (Distinguishability is `color-system`'s job; **readability** is the contrast gate in
    step 6, which this skill owns.)
 
-3. **Delegate the type system to `typography-system`.** It returns the scale ratio + named
-   steps, the line-height ladder, the measure, and the font-loading strategy — the values for
-   the `--text-*` and line-height vars.
+3. **Decide the type system (this skill owns it).** Pick a modular scale ratio (≈1.2 for dense
+   UI, ≈1.25–1.333 for editorial) off a `1rem` base for the `--text-*` steps, with line-heights
+   that tighten as size grows. Apply the **reading-craft defaults unconditionally** — even when
+   the prompt doesn't signal long-form: **bound the measure** (≈45–75ch) so body text never runs
+   full-bleed, prefer **`clamp()` fluid type** over breakpoint jumps, and load fonts with
+   `next/font` (self-host, `display: swap`, metric-matched fallback, ≤ 2 families) so a swap
+   never shifts layout. (A capable base model does this when asked for a "reading site" but skips
+   it on a generic UI — applying it always is the residual value folded in here.)
 
 4. **Delegate spacing + grid to `layout-composition`.** It returns the spacing scale (8pt
    system) with its rationale, the grid/container model, and breakpoints — the values for the
@@ -106,9 +111,9 @@ type-safety"; "hex is fine."
 ---
 
 ## Composes With
-- **Delegates to:** `color-system` (color theory + CVD), `typography-system` (type system),
-  `layout-composition` (grid + spacing), `motion-system` (motion language) — they make the
-  design decisions; this skill orchestrates and serializes them.
+- **Delegates to:** `color-system` (color theory + CVD), `layout-composition` (grid + spacing),
+  `motion-system` (motion language) — they make those design decisions; this skill orchestrates
+  and serializes them, and owns the type system directly.
 - **Consumed by:** every UI-producing skill (`vertical-slice`); these tokens are the
   vocabulary.
 - **Checked by:** `rule-audit` rule 3 — hardcoded-style violations are defined as "not

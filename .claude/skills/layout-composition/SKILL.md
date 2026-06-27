@@ -108,7 +108,7 @@ optional, let it fill the screen."
 ## Composes With
 - **Called by / hands off to:** `design-tokens` — it emits the spacing and breakpoint tokens
   these decisions define.
-- **Pairs with:** `typography-system` — the measure (line-length) is a shared constraint that
+- **Pairs with:** `design-tokens` — the measure (line-length) is a shared constraint that
   binds the content max-width here to the type system there.
 - **Enforced by:** `rule-audit` Rule 3 (no hardcoded spacing); the touch-target conformance floor
   is `a11y-gate` (WCAG 2.5.8).
