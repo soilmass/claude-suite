@@ -111,10 +111,12 @@ why a human reviewing at speed misses them and why `rule-audit` scans for them m
 
 ## Quality gates (definition of done)
 
-A change is done only when all three pass: **`rule-audit`** (nine rules clean), **`a11y-gate`**
+A change is done only when all four pass: **`rule-audit`** (nine rules clean), **`a11y-gate`**
 (axe clean + manual WCAG 2.2 AA items), **`security-pass`** (threat model answered, headers
-verified, deps scanned). Plus deterministic CI gates: **performance budget** (LCP/INP/CLS at
-p75) and the **dependency scan**.
+verified, deps scanned), and **`design-gate`** (design-system adherence + craft: spacing/type
+on-scale, colors used by semantic role and colorblind-safe, hierarchy legible, the four states
+crafted — defers contrast to `a11y-gate`, hardcoded values to `rule-audit`). Plus deterministic
+CI gates: **performance budget** (LCP/INP/CLS at p75) and the **dependency scan**.
 
 ## Observability & cost
 

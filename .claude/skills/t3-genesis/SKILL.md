@@ -57,9 +57,10 @@ and seeds the guard files and gates.
 3. **Seed the guard files:** copy/author `CLAUDE.md` and `DECISIONS.md` at the root
    (DECISIONS.md already carries the edge + Drizzle + driver entries).
 
-4. **Seed the CI quality gates:** wire the three done-time gates (`rule-audit` script,
-   `a11y-gate`, `security-pass` checklist) and the deterministic gates (performance
-   budget at p75, dependency scan) into CI config so they fail the build, not just advise.
+4. **Seed the CI quality gates:** wire the four done-time gates (`rule-audit` script,
+   `a11y-gate`, `security-pass` checklist, `design-gate` design-system/craft review) and the
+   deterministic gates (performance budget at p75, dependency scan) into CI config so they
+   fail the build, not just advise.
 
 5. **Completeness check.** Before declaring done, confirm all present: guard files, CI
    gates, token starter, auth wiring, Drizzle/driver setup, App-Router-only layout. A

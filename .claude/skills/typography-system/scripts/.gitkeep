@@ -1,0 +1,3 @@
+reserved — add a script only if a typography-specific mechanical check emerges (e.g. a
+font-subset byte-budget checker) that isn't already better owned by bundle-analysis /
+perf-budget-check.

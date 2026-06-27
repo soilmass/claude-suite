@@ -1,0 +1,6 @@
+# reserved / empty for now.
+# A script would be justified only by a mechanical spacing-step adherence check (every margin/
+# padding/gap resolves to a scale step). That check belongs to rule-audit Rule 3 / design-gate,
+# not here — this skill is spatial-design judgment (grid, hierarchy, density, breakpoints), which
+# is not falsifiable by a script. Add one here only if a layout-specific, deterministic check
+# emerges that no sibling owns.

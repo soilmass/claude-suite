@@ -37,7 +37,7 @@ turns the PR red and unmergeable.
 - **Never** add `continue-on-error: true`, `|| true`, or a swallowed exit code to a gate job.
   A gate that cannot fail the build is not a gate.
 - **Never** leave a gate job unrequired in branch protection. A red job that does not block
-  merge is theater (Rule 9 of the suite's "definition of done": all three gates must pass).
+  merge is theater (the suite's "definition of done": all four gates must pass).
 - **Never** put a secret literal in the workflow YAML or echo `secrets.*` to logs — use
   `${{ secrets.NAME }}` in `env:` only, masked, edge-relevant ones via repo/environment
   secrets (CLAUDE.md Rule 9, no secrets client-side extends to CI logs).

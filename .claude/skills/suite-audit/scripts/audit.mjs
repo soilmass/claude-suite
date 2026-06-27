@@ -33,6 +33,7 @@ const commandsDir = join(root, "commands");
 const FOUNDATION = new Set([
   "t3-genesis", "design-tokens", "schema-design", "vertical-slice", "refactor",
   "migration-author", "rule-audit", "a11y-gate", "security-pass", "perishable-refresh",
+  "color-system", "typography-system", "layout-composition", "motion-system", "design-gate",
   "deep-research", "draft-adr", "draft-conventional-commit", "optimization-loop",
   "draft-launch-comms", "draft-runbook", "draft-change-request", "bisect",
 ]);

@@ -1,0 +1,3 @@
+# reserved — no script yet. A prefers-reduced-motion presence check is better expressed as a
+# lint/hook over the codebase (grep for transition/animation without a reduce variant) than as
+# a skill script; add one here only if motion regressions recur in review.
