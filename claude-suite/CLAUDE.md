@@ -118,6 +118,28 @@ on-scale, colors used by semantic role and colorblind-safe, hierarchy legible, t
 crafted — defers contrast to `a11y-gate`, hardcoded values to `rule-audit`). Plus deterministic
 CI gates: **performance budget** (LCP/INP/CLS at p75) and the **dependency scan**.
 
+**Enforcement model.** Mechanical gates run in CI and block merge (`rule-audit` scan,
+`ci-a11y-test`, perf budget, dependency scan); the judgment gates a CI job can't decide
+(`security-pass`, `design-gate`, and the manual halves of `rule-audit`/`a11y-gate`) are confirmed
+via a required PR acknowledgement. `ci-pipeline` wires both.
+
+## API, integration & edge conventions
+
+- **Idempotency.** Effectful mutations and webhook processing are safe to retry — key + dedup
+  store, processed exactly once (`idempotency-keys`).
+- **Error taxonomy.** Typed `TRPCError` codes from one shared taxonomy mapped to the form field;
+  no stack trace / internal message / SQL / PII reaches the client (`error-taxonomy`).
+- **Rate limiting.** Protected and public procedures are rate-limited; auth endpoints hardened
+  (`rate-limit-strategy` over `trpc-middleware`).
+- **Inbound webhooks.** Verify signature **before** parse, Zod-parse, process idempotently on the
+  event id (`webhook-handler`).
+- **Atomicity at the edge.** No interactive transactions over HTTP — guarded statements, CTEs,
+  `db.batch`, or idempotent sagas with a named consistency boundary (`edge-transactions`).
+- **Edge boundaries + escape hatch.** No long-lived compute or persistent connections at the edge:
+  background jobs / queues / cron and websockets / SSE are out of band by design. Offload async to
+  a queue/worker (QStash, Inngest) and live updates to a managed realtime service; record the call
+  in `DECISIONS.md`.
+
 ## Observability & cost
 
 - OTel traces + Sentry, instrumented at genesis.

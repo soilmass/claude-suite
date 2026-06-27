@@ -14,7 +14,7 @@ description: >
 license: Apache-2.0
 metadata:
   version: "0.1"
-  source_of_truth: ../../../CLAUDE.md
+  source_of_truth: ../../CLAUDE.md
   changelog: >
     v0.1 — initial draft. Generalizes clerk-auth-flows' Svix webhook into the provider-agnostic
     pattern. Encodes the inbound-webhook failure class: parse-before-verify, req.json() losing

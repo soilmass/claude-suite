@@ -136,9 +136,10 @@ a number, store it however."
 - **Consumes:** `money-modeling` — it owns the `amount_minor`/`currency` column type and the
   branded `Money`; this skill only writes Stripe's already-minor amounts into it. `env-validation`
   — the typed `STRIPE_*` boundary. `schema-design` — the non-payment tables a purchase relates to.
-- **Specializes:** `clerk-auth-flows` — the reference instance of the inbound-webhook
-  verify→parse→idempotent-upsert pattern; this skill applies it to Stripe (Stripe signatures +
-  the async edge verifier instead of Svix).
+- **Specializes:** `webhook-handler` — the generic inbound-webhook verify→parse→idempotent-upsert
+  pattern (whose Clerk/Svix instance is `clerk-auth-flows`); this skill applies it to Stripe with
+  Stripe signatures + the async edge verifier.
+- **Uses:** `idempotency-keys` — event-id dedup that makes webhook processing exactly-once.
 - **Pairs with:** `audit-log-pattern` — record a money-moving event in the same transaction as
   the state change; `edge-runtime-constraints` — confirms the client path is edge-safe;
   `vertical-slice` — builds the ownership-checked procedure that starts the checkout.

@@ -132,6 +132,39 @@ Plus the deterministic, non-skill gates:
   `perishable-refresh` since they date.
 - **Dependency scan (CI):** automated; `security-pass` confirms it ran, doesn't replace it.
 
+**Enforcement model.** The mechanical gates run in CI and block merge (`rule-audit` scan, the
+a11y axe run via `ci-a11y-test`, perf budget, dependency scan). The judgment gates a CI job
+cannot decide — `security-pass` and `design-gate`, plus the manual halves of
+`rule-audit`/`a11y-gate` — are confirmed on the PR via a required reviewer acknowledgement, not
+left implicit. `ci-pipeline` wires both halves.
+
+---
+
+## API, integration & edge conventions
+
+- **Idempotency.** Every effectful mutation and all webhook processing is safe to retry — an
+  idempotency key + dedup store, processed exactly once (`idempotency-keys`). The retry is the
+  rule, not the exception.
+- **Error taxonomy.** Failures are typed `TRPCError` codes from one shared taxonomy, mapped to
+  the form field; no stack trace, internal message, SQL, or PII reaches the client
+  (`error-taxonomy`, Rule-9-adjacent).
+- **Rate limiting.** Protected and public procedures are rate-limited; auth endpoints are
+  hardened against brute-force / credential-stuffing (`rate-limit-strategy` over `trpc-middleware`).
+- **Inbound webhooks.** Verify the signature **before** parsing, Zod-parse the verified payload,
+  process idempotently keyed on the event id (`webhook-handler`).
+- **Money/atomicity at the edge.** Multi-statement interactive transactions don't exist over the
+  HTTP driver — use guarded single statements, CTEs, `db.batch`, or idempotent sagas with a named
+  consistency boundary (`edge-transactions`).
+
+### Edge runtime boundaries (and the escape hatch)
+
+The edge runtime has **no long-lived compute and no persistent connections** — so background
+jobs / queues / cron and websockets / SSE are **out of band by design**, not unsupported. When a
+feature needs them, don't force them into an edge route: offload async work to a queue/worker
+(QStash, Inngest, a durable workflow) and use a managed realtime service for live updates, then
+record the choice in `DECISIONS.md`. The edge stays the request path; long-running work lives
+beside it.
+
 ---
 
 ## Microcopy & voice
