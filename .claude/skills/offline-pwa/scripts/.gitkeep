@@ -1,0 +1,1 @@
+Reserved. Would justify a script: a static check flagging a service worker `fetch` handler that caches a response under an authed/API path (`/api/`, `/trpc/`) — the Rule 9/2 leak — or a SW file with no `caches.delete` in its `activate` handler (no versioned-cache cleanup, the stale-forever tell). Until reliably greppable, no script.
