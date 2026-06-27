@@ -1,0 +1,55 @@
+{
+  "$comment": "claude-suite hook wiring + permissions allowlist. Merge into your project's .claude/settings.json. Paths assume hooks installed at .claude/hooks/ and skills at .claude/skills/. Review every hook in claude-suite/hooks/ before enabling — they run automatically.",
+  "permissions": {
+    "allow": [
+      "Bash(node .claude/hooks/*)",
+      "Bash(node .claude/skills/*/scripts/*.mjs*)",
+      "Bash(node claude-suite/skills/*/scripts/*.mjs*)"
+    ]
+  },
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          { "type": "command", "command": "node .claude/hooks/pre-commit-gate.mjs" }
+        ]
+      },
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          { "type": "command", "command": "node .claude/hooks/protect-source-of-truth.mjs" },
+          { "type": "command", "command": "node .claude/hooks/no-secrets-guard.mjs" }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          { "type": "command", "command": "node .claude/hooks/drift-guard.mjs" }
+        ]
+      },
+      {
+        "matcher": "Write",
+        "hooks": [
+          { "type": "command", "command": "node .claude/hooks/skill-lint.mjs" }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          { "type": "command", "command": "node .claude/hooks/stop-gates-reminder.mjs" }
+        ]
+      }
+    ],
+    "SessionStart": [
+      {
+        "hooks": [
+          { "type": "command", "command": "node .claude/hooks/session-context.mjs" }
+        ]
+      }
+    ]
+  }
+}

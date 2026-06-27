@@ -1,0 +1,33 @@
+{
+  "$comment": "Opt-in MCP server suggestions for the claude-suite edge T3 stack. These are NOT enabled by default — copy the entries you want into your project's .mcp.json (or run `claude mcp add`). Review each server's trust and scopes before enabling; none are required for the suite to function.",
+  "mcpServers": {
+    "github": {
+      "$why": "PR/issue/label/Project automation — pairs with the pr-describer agent, /pr, and changelog-from-commits.",
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-github"],
+      "env": { "GITHUB_PERSONAL_ACCESS_TOKEN": "${GITHUB_TOKEN}" }
+    },
+    "neon": {
+      "$why": "Serverless Postgres host for the edge driver (DECISIONS.md: Neon/Turso class). Inspect branches, run read queries, check the schema during schema-design / migration-author.",
+      "command": "npx",
+      "args": ["-y", "@neondatabase/mcp-server-neon"],
+      "env": { "NEON_API_KEY": "${NEON_API_KEY}" }
+    },
+    "vercel": {
+      "$why": "Edge deployment target — deploy-edge / deploy-check / rollback-runbook. Inspect deployments, env, and logs.",
+      "command": "npx",
+      "args": ["-y", "@vercel/mcp-server"],
+      "env": { "VERCEL_TOKEN": "${VERCEL_TOKEN}" }
+    },
+    "sentry": {
+      "$why": "Error monitoring wired at genesis (observability-setup). Pull issues/traces during debug and hypercare.",
+      "command": "npx",
+      "args": ["-y", "@sentry/mcp-server"],
+      "env": { "SENTRY_AUTH_TOKEN": "${SENTRY_AUTH_TOKEN}" }
+    },
+    "chrome-devtools": {
+      "$why": "Browser automation for a11y-gate (axe), playwright-e2e flows, and perf-budget-check (live vitals). Already available in this environment via the claude-in-chrome integration.",
+      "$note": "No config needed here if the claude-in-chrome MCP is already connected; listed for completeness."
+    }
+  }
+}

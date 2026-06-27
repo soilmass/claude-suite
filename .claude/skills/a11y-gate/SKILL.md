@@ -1,0 +1,109 @@
+---
+name: a11y-gate
+description: >
+  Run axe against rendered output and interpret results against the WCAG 2.2 AA floor,
+  naming the concrete fix for each finding and flagging the manual-review items axe
+  cannot detect (meaningful alt text, logical reading order, keyboard flows).
+  Use when: "check accessibility", "a11y pass", "is this accessible", "run axe", "WCAG
+  check", "screen-reader review".
+  Do NOT use for: the non-a11y inviolable rules (use rule-audit), security (use
+  security-pass), or performance (CI budget).
+license: Apache-2.0
+metadata:
+  version: "0.1"
+  source_of_truth: ../../CLAUDE.md
+  changelog: >
+    v0.1 — initial draft. One of the done-time gate trio. Partly wraps axe (a script) with
+    judgment. Baseline section is the encoded failure class; replace with an observed
+    transcript.
+---
+
+# a11y-gate
+
+A done-time gate, sibling to `rule-audit` and `security-pass`. Suggestion-first like its
+siblings: no interrogation — it runs axe and reads the output — but it names the specific
+fix for each finding and, crucially, distinguishes what axe *can* catch from what it
+*can't*, so "axe passed" is never mistaken for "accessible."
+
+The WCAG 2.2 AA floor is set in `../../CLAUDE.md`.
+
+---
+
+## When to Use
+- Rendered UI is finished and headed for done; part of the gate trio.
+- The user asks whether something is accessible.
+
+## When NOT to Use
+- Non-a11y rules → `rule-audit`. Security → `security-pass`.
+
+---
+
+## Procedure
+
+1. **No interrogation — run axe.** Point axe at the rendered routes/components. The input
+   is the rendered output; there's nothing load-bearing to ask.
+
+2. **Interpret against WCAG 2.2 AA, name fixes (suggestion-first).** For each machine
+   finding, give the specific fix: the missing `aria-label`, the form control without a
+   `<label>`, the contrast pair that fails, the focus-order problem. Not a bare flag — the
+   fix.
+
+3. **Flag the manual-review items axe CANNOT catch (completeness check).** State, every
+   time, the things that pass axe but still fail real users: meaningful alt text (vs
+   present-but-useless), logical reading/tab order, keyboard operability of custom
+   interactions, focus visibility and management in dialogs/menus, error messages tied to
+   fields. See `references/manual-checks.md`. This is what keeps "axe passed" honest.
+
+4. **State the level checked.** Say explicitly: "axe clean at WCAG 2.2 AA for machine-
+   detectable rules; the following manual items still need a human pass: …" — so coverage
+   is never overstated.
+
+5. **Suggest, don't silently fix.** Offer the concrete remediation for each item; the user
+   applies. Many a11y fixes are token/markup changes that should re-run the gate after.
+
+---
+
+## Composes With
+- **Part of the done-time gate trio** with `rule-audit` and `security-pass`.
+- **Runs against** `vertical-slice`/`refactor` rendered output. Custom interactive
+  behavior should already be shadcn/Radix (which carries a11y) per `CLAUDE.md` — this
+  gate catches where that discipline slipped.
+
+---
+
+## Baseline failure (REPLACE WITH OBSERVED TRANSCRIPT)
+> Encoded failure class; replace with a real transcript.
+
+**Failure class encoded:** The agent produces visually-correct UI with broken keyboard
+navigation, missing form labels, poor focus order, and contrast failures — all invisible
+in a visual check and only surfacing when an assistive-tech user hits them.
+
+---
+
+## Examples
+**Input:** "a11y pass on the new settings form."
+**Output:** Runs axe → reports `[AA 1.4.3] contrast 3.1:1 on the helper text — raise to
+the muted-strong token (4.6:1)`, `[AA 4.1.2] the toggle has no accessible name — add
+aria-label` → then the manual list: "axe can't verify the tab order through the form is
+logical, that the inline error is announced, or that the custom dropdown traps focus —
+check these by keyboard." States: AA machine-clean after the two fixes; manual items open.
+
+---
+
+## Edge Cases
+- **No rendered environment to run axe against** → walk the manual checklist by reading
+  the markup; flag that machine coverage didn't run.
+- **axe reports zero issues** → do NOT report "accessible"; report "axe-clean" and hand
+  over the manual list. The gap is the whole point.
+- **A finding is a false positive** (axe flags a valid pattern) → say so, don't make a
+  pointless change.
+
+---
+
+## References
+- `references/manual-checks.md` — the WCAG 2.2 AA items axe cannot detect, as a keyboard-
+  and-screen-reader checklist.
+
+## Scripts
+- `scripts/README.md` — how to run axe against rendered routes (axe-core / Playwright) in
+  this edge/App-Router setup; the script itself is environment-specific and noted there.

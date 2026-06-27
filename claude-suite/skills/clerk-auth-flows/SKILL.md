@@ -1,0 +1,173 @@
+---
+name: clerk-auth-flows
+description: >
+  Wire Clerk on the edge runtime the decided way: clerkMiddleware with a correct route
+  matcher, catch-all sign-in/sign-up pages, organization-scoped auth, and Svix-verified
+  webhooks whose payloads are Zod-parsed before they touch Drizzle. Gets the genesis auth
+  layer right so features inherit a trustworthy ctx.auth instead of re-implementing auth.
+  Use when: "set up auth", "clerk middleware", "sign in flow", "clerk webhook",
+  "organizations".
+  Do NOT use for: per-resource ownership checks inside a procedure (use vertical-slice), or
+  the header/security review of the finished auth surface (use security-pass).
+license: Apache-2.0
+metadata:
+  version: "0.1"
+  source_of_truth: ../../CLAUDE.md
+  changelog: >
+    v0.1 — initial draft. Encodes the edge-Clerk failure class: unverified/unparsed webhooks
+    and leaky middleware matchers. Baseline section is the encoded failure class; replace
+    with an observed transcript.
+---
+
+# clerk-auth-flows
+
+The genesis auth layer for the edge stack. Clerk is wired once via `clerkMiddleware`, and
+every feature thereafter trusts `ctx.auth` rather than re-implementing sign-in. This skill
+covers the four places auth is actually configured — middleware, the sign-in/up pages,
+organizations, and webhooks — and the two failure-prone ones (the matcher and the webhook
+boundary) where generated code compiles but is wrong.
+
+Spine and rules live in `../../CLAUDE.md` (Auth, Rules 2/8/9). This skill obeys them and does
+not restate them.
+
+---
+
+## Non-Negotiable Rules
+
+These exist because the defect ships in code that compiles and returns 200:
+
+- **Never trust a webhook body before verifying its Svix signature.** Construct `Webhook`
+  with `CLERK_WEBHOOK_SIGNING_SECRET`, `verify()` the raw body against the `svix-id` /
+  `svix-timestamp` / `svix-signature` headers, and only then read it. An unverified handler
+  is a public write endpoint for anyone.
+- **Never feed a webhook payload into Drizzle without Zod-parsing it first (Rule 8).** The
+  verified body is still `unknown`. Parse it to the event shape before any DB write.
+- **Never put a Clerk secret in `NEXT_PUBLIC_*` or a Client Component (Rule 9).** Only the
+  publishable key is public; `CLERK_SECRET_KEY` and the webhook secret are server-only and
+  Zod-validated at the env boundary (Rule 8).
+- **Never write a route matcher that leaves `/api` or `/trpc` uncovered.** A matcher that
+  skips your API routes silently disables auth on the exact surface that mutates data.
+
+Refuse these rationalizations: "the endpoint is obscure, signature check later"; "the body
+is already typed by the SDK so Zod is redundant"; "the webhook secret in `NEXT_PUBLIC_` is
+fine, it's just a webhook"; "the default Next matcher is good enough."
+
+---
+
+## When to Use
+
+- Standing up auth at project genesis, or adding sign-in/sign-up to an existing edge app.
+- Adding Clerk **organizations** (multi-tenant `orgId` / `orgRole`) to the auth model.
+- Building or fixing a **Clerk webhook** that syncs users/orgs into Drizzle.
+- Auditing or correcting the `middleware.ts` route matcher.
+
+## When NOT to Use
+
+- Checking that a specific row belongs to `ctx.auth.userId` inside a query/mutation (Rule 2)
+  → that lives in the feature, use `vertical-slice`.
+- Threat-modeling the finished auth surface, header verification, dep scan → `security-pass`.
+- Designing the tRPC `protectedProcedure`/middleware layer itself → `trpc-middleware`.
+- Modeling the `users`/`organizations` tables the webhook writes to → `schema-design`.
+
+---
+
+## Procedure
+
+1. **Validate the auth env at the boundary first (high — Rule 8/9).** Add
+   `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY`, `CLERK_SECRET_KEY`, `CLERK_WEBHOOK_SIGNING_SECRET`,
+   and the sign-in/up URL vars to the Zod env schema; keep secrets out of `NEXT_PUBLIC_*`.
+   See `references/middleware-and-auth.md`.
+2. **Write `middleware.ts` with `clerkMiddleware` + `createRouteMatcher` (high).** Declare
+   public routes explicitly, `await auth.protect()` everything else, and ship the matcher
+   that covers `/(api|trpc)(.*)` while skipping static assets. This is the line that most
+   often leaks. See `references/middleware-and-auth.md`.
+3. **Add the catch-all sign-in/sign-up pages (low).** `app/sign-in/[[...sign-in]]/page.tsx`
+   and the matching sign-up route rendering `<SignIn />`/`<SignUp />`, wrap the app in
+   `<ClerkProvider>`. URLs come from env, not hardcoded.
+4. **Wire `ctx.auth` into the tRPC context (medium).** Read `auth()` in the context factory
+   so `protectedProcedure` can assert `ctx.auth.userId` (and `orgId` when org-scoped). The
+   ownership check on top of it is `vertical-slice`'s job, not this skill's.
+5. **Add organizations if multi-tenant (medium).** Mount `<OrganizationSwitcher />`, decide
+   personal-vs-org scoping, and carry `orgId`/`orgRole` into context. Record the tenancy
+   model in `DECISIONS.md` — it shapes every later ownership check.
+6. **Build the webhook as a verify→parse→sync pipeline (high — Rules 8/2).** Svix-verify the
+   raw body, Zod-parse the event, branch on `type`, and upsert into Drizzle idempotently. Set
+   the route's runtime and return 4xx on bad signature, 2xx only after a successful write.
+   See `references/webhooks.md`.
+7. **Record forks, hand off to the gates.** Tenancy model and any deviation → `DECISIONS.md`;
+   then run `rule-audit` and `security-pass` over the new surface.
+
+---
+
+## Composes With
+
+- **Consumes:** the Zod env schema and `ClerkProvider` wiring from `t3-genesis`.
+- **Feeds:** `ctx.auth` (userId/orgId) into every `protectedProcedure` built by
+  `vertical-slice` and `trpc-middleware`.
+- **Pairs with:** `security-pass` (audits the finished auth surface), `vertical-slice` (adds
+  the per-row ownership check on top), `trpc-middleware` (defines `protectedProcedure`).
+- **Hands off:** the `users`/`organizations` schema the webhook writes to → `schema-design`;
+  the resolved tenancy fork → `DECISIONS.md`.
+
+---
+
+## Baseline failure (REPLACE WITH OBSERVED TRANSCRIPT)
+
+> Encoded failure class per the suite's design; replace with a real run-without-the-skill
+> transcript before treating this as evaluated.
+
+**Failure class encoded:** Asked to "set up Clerk and a webhook to sync users," the agent
+produces: a webhook route that `await req.json()` and writes straight to the DB with **no
+Svix verification** (a public write endpoint) and **no Zod parse** of the `unknown` body
+(Rule 8); the webhook signing secret pasted into `NEXT_PUBLIC_CLERK_WEBHOOK_SECRET` so it
+ships to the browser (Rule 9); a `middleware.ts` matcher copied from a blog that excludes
+`/api`, leaving every mutation unauthenticated; sign-in URLs hardcoded as `/sign-in` strings
+scattered across components; and `ctx.auth` never wired, so procedures re-call `auth()`
+ad hoc. It all compiles and returns 200 in the happy path.
+
+---
+
+## Examples
+
+**Input:** "Set up auth and a webhook that creates a row in our users table when someone
+signs up."
+**Output:** Env vars Zod-validated (secret server-only) → `middleware.ts` with
+`clerkMiddleware`, public routes for `/`, `/sign-in`, `/sign-up`, and the matcher covering
+`/(api|trpc)(.*)` → catch-all sign-in/up pages → webhook at `app/api/webhooks/clerk/route.ts`
+that Svix-`verify()`s, Zod-parses the `user.created` event, and `insert().onConflictDoNothing()`
+into `users` keyed by Clerk `id` (idempotent). Hands the ownership-check work to
+`vertical-slice`.
+
+**Input:** "Make this a multi-tenant app with teams."
+**Output:** Enables Clerk organizations, mounts `<OrganizationSwitcher />`, carries
+`orgId`/`orgRole` into `ctx.auth`, and records in `DECISIONS.md` that resources are
+org-scoped (so every later ownership check is `row.orgId === ctx.auth.orgId`, not just
+userId). Adds `organization.created`/`organizationMembership.*` cases to the webhook.
+
+---
+
+## Edge Cases
+
+- **Webhook fires before the local `users` row exists (FK violation on a child write)** →
+  upsert the user on `user.created` and make child handlers tolerant; don't assume ordering.
+- **Svix `verify` throws on the edge runtime** → if a polyfill gap bites, verify via Web
+  Crypto HMAC and record it in `DECISIONS.md`. See `references/webhooks.md`.
+- **A route must be public but sits under a protected prefix** (e.g. a marketing page under
+  `/app`) → add it to `createRouteMatcher`'s public list explicitly; never widen the matcher.
+- **`auth()` returns no `orgId` for a personal-account user in an org-scoped app** → decide
+  the fallback (reject vs. personal workspace) and encode it once in context, not per route.
+
+---
+
+## References
+
+- `references/middleware-and-auth.md` — env validation, `clerkMiddleware`/matcher, sign-in/up
+  pages, `<ClerkProvider>`, organizations, and wiring `auth()` into the tRPC context.
+- `references/webhooks.md` — the Svix verify→Zod-parse→Drizzle-upsert pipeline, event Zod
+  schemas, idempotency, and edge-runtime caveats.
+
+## Scripts
+
+- Reserved (`scripts/.gitkeep`). A `verify-matcher.mjs` that statically checks `middleware.ts`
+  covers `/(api|trpc)(.*)` and that no `CLERK_*` secret appears under `NEXT_PUBLIC_` would
+  justify a script; until the matcher patterns stabilize, this stays a manual `rule-audit` check.
