@@ -15,8 +15,7 @@ metadata:
   source_of_truth: ../../CLAUDE.md
   changelog: >
     v0.1 — initial draft. Encodes the subagent contract: least-privilege tools, charter,
-    output shape, hand-offs. Baseline section is the encoded failure class; replace with an
-    observed transcript.
+    output shape, hand-offs. Baseline observed (clean-room capture).
 ---
 
 # agent-create

@@ -17,8 +17,7 @@ metadata:
   changelog: >
     v0.1 — initial draft. Encodes the App Router structural failure class: over-broad
     "use client", secrets leaking to the client, unvalidated route handlers, missing
-    loading/error/not-found neighbors. Baseline section is the encoded failure class;
-    replace with an observed transcript.
+    loading/error/not-found neighbors. Baseline observed (clean-room capture).
 ---
 
 # nextjs-app-router

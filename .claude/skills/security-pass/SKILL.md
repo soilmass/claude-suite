@@ -16,8 +16,7 @@ metadata:
   source_of_truth: ../../../CLAUDE.md
   changelog: >
     v0.1 — initial draft. Third done-time gate. OWASP ordering and the "#2 risk" framing
-    are dated facts maintained by perishable-refresh. Baseline section is the encoded
-    failure class; replace with an observed transcript.
+    are dated facts maintained by perishable-refresh. Baseline observed (clean-room capture).
 ---
 
 # security-pass

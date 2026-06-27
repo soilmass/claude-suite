@@ -18,7 +18,7 @@ metadata:
     v0.1 — initial draft. Encodes the decision-record failure class: a resolved fork left
     unlogged (re-litigated next sprint), or logged as undated prose with no scope and no link to
     the rule it touches, or a silent rewrite of a prior decision that erases the audit trail.
-    Baseline section is the encoded failure class; replace with an observed transcript.
+    Baseline observed (clean-room capture).
 ---
 
 # decision-log

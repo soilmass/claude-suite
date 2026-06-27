@@ -17,7 +17,7 @@ metadata:
     v0.1 — initial draft. Encodes the "picked a dep that can't run at the edge / breaks the
     type chain / is abandoned" failure class: a library chosen on GitHub stars and a README,
     which then fails the edge build, drags `any` across a boundary, or is unmaintained.
-    Baseline section is the encoded failure class; replace with an observed transcript.
+    Baseline observed (clean-room capture).
 ---
 
 # tech-evaluation

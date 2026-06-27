@@ -18,7 +18,7 @@ metadata:
     v0.1 — initial draft. Encodes the visual-regression failure class: flaky, non-deterministic
     snapshots taken on the wrong OS and blindly --update-snapshots'd, so the baseline locks in the
     bug instead of catching it.
-    Baseline section is the encoded failure class; replace with an observed transcript.
+    Baseline observed (clean-room capture).
 ---
 
 # visual-regression

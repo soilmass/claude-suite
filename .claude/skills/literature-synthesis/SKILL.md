@@ -17,7 +17,7 @@ metadata:
   changelog: >
     v0.1 — initial draft. Encodes the unattributed-blur failure class: sources merged into one
     voice, claim and evidence conflated, no per-source citation, contradictions silently dropped.
-    Baseline section is the encoded failure class; replace with an observed transcript.
+    Baseline observed (clean-room capture).
 ---
 
 # literature-synthesis

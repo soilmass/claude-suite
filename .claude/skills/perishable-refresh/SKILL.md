@@ -16,8 +16,7 @@ metadata:
   source_of_truth: ../../../CLAUDE.md
   changelog: >
     v0.1 — initial draft. The meta-skill that keeps every other skill's embedded facts
-    honest. Runs last in the build order (presupposes the rest exist to refresh). Baseline
-    section is the encoded failure class; replace with an observed transcript.
+    honest. Runs last in the build order (presupposes the rest exist to refresh). Baseline observed (clean-room capture).
 ---
 
 # perishable-refresh

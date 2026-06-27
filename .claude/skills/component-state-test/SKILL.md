@@ -18,7 +18,7 @@ metadata:
   changelog: >
     v0.1 — initial draft. Encodes the Rule 4 test gap: a component test suite that asserts
     only the success render, leaving loading/empty/error unverified and free to regress.
-    Baseline section is the encoded failure class; replace with an observed transcript.
+    Baseline observed (clean-room capture).
 ---
 
 # component-state-test

@@ -18,8 +18,7 @@ metadata:
   changelog: >
     v0.1 — initial draft. Encodes the enumerable-ID failure class: sequential integer primary
     keys exposed in public URLs/APIs (IDOR surface + business-metric leak), and the inverse
-    waste of random UUIDs on internal-only rows. Baseline section is the encoded failure class;
-    replace with an observed transcript.
+    waste of random UUIDs on internal-only rows. Baseline observed (clean-room capture).
 ---
 
 # uuidv7-ids

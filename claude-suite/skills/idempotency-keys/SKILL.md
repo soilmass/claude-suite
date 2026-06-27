@@ -22,8 +22,7 @@ metadata:
     v0.1 — initial draft. Encodes the at-least-once-without-dedup failure class: an effectful
     mutation (charge, state transition, webhook) that runs twice on retry because there is no
     idempotency key, no atomic claim (check-then-act race), no fingerprint, and no stored
-    replay result. Baseline section is the encoded failure class; replace with an observed
-    transcript.
+    replay result. Baseline observed (clean-room capture).
 ---
 
 # idempotency-keys
@@ -99,8 +98,9 @@ it's basically atomic"; "same key, who cares if the body changed"; "we can expir
 
 5. **Run the effect once, pass the key through, persist the result.** For an external effect, forward
    the same key to the provider (Stripe `Idempotency-Key`), perform it, then `update` the row to
-   `completed`. For a pure DB write, do the `onConflictDoNothing` upsert and the dedup write in one
-   transaction. See `references/safe-retry.md`.
+   `completed`. For a pure DB write, fold the `onConflictDoNothing` upsert and the dedup write into
+   one guarded statement set (CTE / `db.batch`) — not an interactive transaction, which the edge
+   HTTP driver rejects (`edge-transactions`). See `references/safe-retry.md`.
 
 6. **Return the stored prior result on every replay.** A `completed` key returns the exact original
    response, not a recomputation — so the caller can retry forever and observe one outcome; a
@@ -161,8 +161,10 @@ on a fingerprint mismatch throws `CONFLICT`.
 
 **Input:** "Our Stripe webhook sometimes processes the same event twice."
 **Output:** After `webhook-handler` verifies and parses, dedupe on `event.id` (`scope =
-"webhook:stripe"`): claim and process in one transaction, skip if the claim conflicts, return 200
-either way — a redelivery short-circuits to ack without re-running the effect.
+"webhook:stripe"`) with a saga: claim atomically via `onConflictDoNothing`, return the stored
+result if the claim conflicts, otherwise process and persist — releasing the claim on failure (no
+interactive transaction at the edge). Ack 200 either way so a redelivery short-circuits without
+re-running the effect.
 
 **Input:** "Retrying a create-order request creates duplicate orders."
 **Output:** Carry `idempotency_key` on `orders`, `UNIQUE (user_id, idempotency_key)`;

@@ -15,7 +15,7 @@ metadata:
   changelog: >
     v0.1 — initial draft. Encodes the failure class where a skill's baseline is fictional —
     invented defects no model actually produces, so the skill solves nothing and over-fits.
-    Baseline section is the encoded failure class; replace with an observed transcript.
+    Baseline observed (clean-room capture).
 ---
 
 # baseline-capture

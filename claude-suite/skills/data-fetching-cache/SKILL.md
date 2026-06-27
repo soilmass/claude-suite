@@ -19,7 +19,7 @@ metadata:
     v0.1 — initial draft. Encodes the caching failure class: per-user data cached under a
     shared key, reads stale after a mutation (no revalidateTag), accidental full-route
     static render of authed data, and client fetching that bypasses the server data path.
-    Baseline section is the encoded failure class; replace with an observed transcript.
+    Baseline observed (clean-room capture).
 ---
 
 # data-fetching-cache

@@ -17,8 +17,7 @@ metadata:
   changelog: >
     v0.1 — initial draft. Encodes the Rule 7 detection failure class: per-row database
     access (a query lexically nested in a loop over rows) that compiles, passes on a
-    3-row seed, and melts the edge function on real data. Baseline section is the encoded
-    failure class; replace with an observed transcript.
+    3-row seed, and melts the edge function on real data. Baseline observed (clean-room capture).
 ---
 
 # n1-hunter

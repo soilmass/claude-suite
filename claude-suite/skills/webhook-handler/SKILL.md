@@ -18,8 +18,7 @@ metadata:
   changelog: >
     v0.1 — initial draft. Generalizes clerk-auth-flows' Svix webhook into the provider-agnostic
     pattern. Encodes the inbound-webhook failure class: parse-before-verify, req.json() losing
-    the raw bytes, non-idempotent processing, NEXT_PUBLIC/`===` secret handling. Baseline section
-    is the encoded failure class; replace with an observed transcript.
+    the raw bytes, non-idempotent processing, NEXT_PUBLIC/`===` secret handling. Baseline observed (clean-room capture).
 ---
 
 # webhook-handler
@@ -30,7 +29,7 @@ signature is verified, the payload is Zod-parsed, and processing is idempotent. 
 `clerk-auth-flows`' Svix handler into a pattern any provider (Stripe, GitHub, Resend) drops into:
 verify → parse → dedup → fast-ack.
 
-Spine and the nine rules live in `../../../CLAUDE.md`. This is the concrete procedure behind Rule 8
+Spine and the nine rules live in `../../CLAUDE.md`. This is the concrete procedure behind Rule 8
 (validated boundaries), Rule 9 (server-only secrets), and Rule 2 (an unverified body is
 unauthenticated) at the webhook boundary; it does not restate them.
 

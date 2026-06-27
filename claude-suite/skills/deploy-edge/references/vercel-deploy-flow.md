@@ -57,8 +57,8 @@ Run against the **deployed preview URL**, not localhost:
 
 1. Env vars present and correctly scoped for the *target* environment (see `env-wiring.md`).
 2. `next build` clean; no edge-incompatibility error in the build log.
-3. Gates pass on the preview: `rule-audit`, `a11y-gate`, `security-pass`, CI perf budget
-   (LCP/INP/CLS p75).
+3. Gates pass on the preview: `rule-audit`, `a11y-gate`, `security-pass`, `design-gate`, CI perf
+   budget (LCP/INP/CLS p75).
 4. If the change touches the schema, `migration-deploy-coordination` has confirmed the expand
    step is deployed and applied. Code that reads new columns never promotes ahead of them.
 5. Any platform fork (region choice, a `nodejs`-runtime route exception, a sensitive-var call)

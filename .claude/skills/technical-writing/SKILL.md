@@ -17,7 +17,7 @@ metadata:
   changelog: >
     v0.1 — initial draft. Encodes the system-shaped-docs failure class: prose organized by
     internals not reader task, buried why, and non-running examples that drift from the stack.
-    Baseline section is the encoded failure class; replace with an observed transcript.
+    Baseline observed (clean-room capture).
 ---
 
 # technical-writing

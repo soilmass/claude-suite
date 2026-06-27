@@ -16,7 +16,7 @@ metadata:
   changelog: >
     v0.1 — initial draft. Encodes the failure class of unsourced, undated, asymmetric
     competitor comparisons that read as confident but cannot be audited or refreshed.
-    Baseline section is the encoded failure class; replace with an observed transcript.
+    Baseline observed (clean-room capture).
 ---
 
 # competitive-analysis

@@ -19,8 +19,7 @@ metadata:
   changelog: >
     v0.1 — initial draft. Encodes the decision-research failure class: jumping to a favored
     option, gathering evidence to confirm it (motivated reasoning), and handing the ADR author
-    an unweighted, uncited, one-option-deep brief. Baseline section is the encoded failure
-    class; replace with an observed transcript.
+    an unweighted, uncited, one-option-deep brief. Baseline observed (clean-room capture).
 ---
 
 # adr-research

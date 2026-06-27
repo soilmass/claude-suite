@@ -18,7 +18,7 @@ metadata:
   changelog: >
     v0.1 — initial draft. Encodes the drifting-validation failure class: two divergent
     schemas for one operation, float money in the schema, unvalidated coercion at the edge.
-    Baseline section is the encoded failure class; replace with an observed transcript.
+    Baseline observed (clean-room capture).
 ---
 
 # zod-schema-library

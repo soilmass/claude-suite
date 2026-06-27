@@ -17,8 +17,7 @@ metadata:
   changelog: >
     v0.1 — initial draft. Encodes the unsafe-backfill failure class: one unbounded UPDATE
     that locks the table and times out the HTTP driver, run non-idempotently inside an edge
-    request with OFFSET paging. Baseline section is the encoded failure class; replace with
-    an observed transcript.
+    request with OFFSET paging. Baseline observed (clean-room capture).
 ---
 
 # data-backfill

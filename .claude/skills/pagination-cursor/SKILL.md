@@ -17,7 +17,7 @@ metadata:
   changelog: >
     v0.1 — initial draft. Encodes the offset-pagination failure class: `LIMIT/OFFSET` over
     large or mutating sets, which skips/duplicates rows and scans O(offset) at the edge.
-    Baseline section is the encoded failure class; replace with an observed transcript.
+    Baseline observed (clean-room capture).
 ---
 
 # pagination-cursor

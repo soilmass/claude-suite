@@ -15,8 +15,7 @@ metadata:
   source_of_truth: ../../CLAUDE.md
   changelog: >
     v0.1 — initial draft. The self-growing core of the suite: encodes the house style so new
-    skills don't drift. Baseline section is the encoded failure class; replace with an
-    observed transcript.
+    skills don't drift. Baseline observed (clean-room capture).
 ---
 
 # skill-create

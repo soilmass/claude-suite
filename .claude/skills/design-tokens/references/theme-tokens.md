@@ -26,6 +26,16 @@ source (CLAUDE.md). OKLCH source values for perceptual evenness.
   --text-xl:   1.5625rem;
   --text-2xl:  1.953rem;
   --text-3xl:  2.441rem;
+  /* fluid display step — clamp(min, preferred, max): scales with the viewport between the bounds */
+  --text-display: clamp(2.441rem, 1.8rem + 3.2vw, 3.815rem);
+
+  /* line-height — tight for headings, open for body (this skill owns type tokens post-fold) */
+  --leading-tight:   1.15;   /* headings / display */
+  --leading-snug:    1.3;    /* subheads, short UI labels */
+  --leading-normal:  1.6;    /* body copy — 1.5–1.7 keeps long-form readable */
+
+  /* measure — cap line length so body text stays in the 60–75ch readable band */
+  --measure: 68ch;
 
   /* spacing — 8pt system (0.5rem = 8px base step) */
   --spacing-1: 0.5rem;   /*  8px */

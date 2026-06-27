@@ -113,7 +113,7 @@ export const memberships = pgTable(
 ```
 
 Conventions (snake_case, both timestamps, indexes on the FKs, the `default("viewer")` choice)
-are owned by `schema-design` and `../../../CLAUDE.md`; this table just applies them. The
+are owned by `schema-design` and `../../CLAUDE.md`; this table just applies them. The
 membership lookup is itself `userId`-scoped (Rule 2) — never trust a requested `orgId` as proof
 of membership.
 

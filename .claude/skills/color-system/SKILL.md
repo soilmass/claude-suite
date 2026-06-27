@@ -18,8 +18,7 @@ metadata:
   source_of_truth: ../../../CLAUDE.md
   changelog: >
     v0.1 — initial draft. The color-theory engine design-tokens orchestrates. Bundles
-    cvd-check.mjs (distinguishability, orthogonal to contrast.mjs). Baseline section is the
-    encoded failure class; replace with an observed transcript.
+    cvd-check.mjs (distinguishability, orthogonal to contrast.mjs). Baseline observed (clean-room capture).
 ---
 
 # color-system

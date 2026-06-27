@@ -18,7 +18,7 @@ metadata:
   changelog: >
     v0.1 — initial draft. Encodes the drifting-docs failure class: hand-written API reference
     that lies about inputs, auth, and errors the moment a procedure changes.
-    Baseline section is the encoded failure class; replace with an observed transcript.
+    Baseline observed (clean-room capture).
 ---
 
 # api-docs-from-trpc

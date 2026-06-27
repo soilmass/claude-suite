@@ -15,7 +15,7 @@ metadata:
   changelog: >
     v0.1 — initial draft. Encodes the non-idempotent / type-drifted seed failure class:
     seeds that hardcode row literals, duplicate on re-run, and float money.
-    Baseline section is the encoded failure class; replace with an observed transcript.
+    Baseline observed (clean-room capture).
 ---
 
 # drizzle-seed

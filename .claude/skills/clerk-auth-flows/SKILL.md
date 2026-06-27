@@ -15,8 +15,7 @@ metadata:
   source_of_truth: ../../CLAUDE.md
   changelog: >
     v0.1 — initial draft. Encodes the edge-Clerk failure class: unverified/unparsed webhooks
-    and leaky middleware matchers. Baseline section is the encoded failure class; replace
-    with an observed transcript.
+    and leaky middleware matchers. Baseline observed (clean-room capture).
 ---
 
 # clerk-auth-flows

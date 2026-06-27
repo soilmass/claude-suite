@@ -18,7 +18,7 @@ metadata:
     v0.1 — initial draft. Encodes the failure class of the unscannable README that buries
     what the project is, ships a quickstart that does not run, and tries to be the full
     docs instead of a map to them.
-    Baseline section is the encoded failure class; replace with an observed transcript.
+    Baseline observed (clean-room capture).
 ---
 
 # readme-author

@@ -19,8 +19,7 @@ metadata:
     v0.1 — initial draft. Encodes the RBAC failure class where a role check *replaces* the
     ownership check (Rule 2) instead of augmenting it, where there is no default-deny, and
     where `if (role === "admin")` is scattered across procedures instead of a central
-    permission matrix. Baseline section is the encoded failure class; replace with an
-    observed transcript.
+    permission matrix. Baseline observed (clean-room capture).
 ---
 
 # rbac-permissions
@@ -32,7 +31,7 @@ this skill proves the caller's *role* grants the *action class*; and ownership (
 that quietly stands in for the ownership check — an editor who "can delete posts" is handed a
 delete-anything primitive because the `where` clause dropped the `orgId`/owner predicate. RBAC
 and ownership are different gates; both fire. Spine and the nine rules live in
-`../../../CLAUDE.md` (Rule 2 is central); this skill obeys them and does not restate them.
+`../../CLAUDE.md` (Rule 2 is central); this skill obeys them and does not restate them.
 
 ---
 

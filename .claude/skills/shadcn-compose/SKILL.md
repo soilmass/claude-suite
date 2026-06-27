@@ -15,8 +15,7 @@ metadata:
   source_of_truth: ../../CLAUDE.md
   changelog: >
     v0.1 — initial draft. Encodes the "hand-built interactive widget" failure class: bespoke
-    open state, missing focus trap / escape / ARIA, reinvented Radix. Baseline section is the
-    encoded failure class; replace with an observed transcript.
+    open state, missing focus trap / escape / ARIA, reinvented Radix. Baseline observed (clean-room capture).
 ---
 
 # shadcn-compose

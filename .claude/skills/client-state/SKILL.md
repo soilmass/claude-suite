@@ -20,7 +20,7 @@ metadata:
     v0.1 — initial draft. Encodes the client-state failure class: server data duplicated into a
     Zustand store (two sources of truth that drift), shareable filter/sort state trapped in
     useState instead of the URL, and an untyped/`any` store off the schema-rooted type chain.
-    Baseline section is the encoded failure class; replace with an observed transcript.
+    Baseline observed (clean-room capture).
 ---
 
 # client-state

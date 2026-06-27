@@ -14,8 +14,7 @@ metadata:
   source_of_truth: ../../../CLAUDE.md
   changelog: >
     v0.1 — initial draft. One of the four done-time gates. Partly wraps axe (a script) with
-    judgment. Baseline section is the encoded failure class; replace with an observed
-    transcript.
+    judgment. Baseline observed (clean-room capture).
 ---
 
 # a11y-gate

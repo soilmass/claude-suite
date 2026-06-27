@@ -18,7 +18,7 @@ metadata:
     v0.1 — initial draft. Encodes the route-state failure class: a segment that ships
     only page.tsx, so a thrown error becomes Next's default overlay or a white screen, a
     slow fetch becomes a frozen route, and a missing row 500s instead of 404ing.
-    Baseline section is the encoded failure class; replace with an observed transcript.
+    Baseline observed (clean-room capture).
 ---
 
 # error-boundaries

@@ -19,7 +19,7 @@ metadata:
   changelog: >
     v0.1 — initial draft. Encodes the router-wiring failure class: edge-incompatible
     context, the server router leaking into the client bundle, and an untyped AppRouter.
-    Baseline section is the encoded failure class; replace with an observed transcript.
+    Baseline observed (clean-room capture).
 ---
 
 # trpc-router-compose

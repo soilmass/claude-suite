@@ -30,7 +30,7 @@ dimensions, a `sizes` attribute, an allowlist — then skips the quiet disciplin
 without configuring it, no placeholder, and the built-in optimizer instead of a CDN loader. It owns
 the IMAGE pipeline only — the grid, spacing, and aspect-ratio *tokens* belong to `layout-composition`,
 the pass/fail Core Web Vitals verdict to `perf-budget-check`; this serves both. The spine (Next.js
-App Router, edge runtime) and the nine rules live in `../../../CLAUDE.md`.
+App Router, edge runtime) and the nine rules live in `../../CLAUDE.md`.
 
 ---
 

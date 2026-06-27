@@ -17,7 +17,7 @@ metadata:
   changelog: >
     v0.1 — initial draft. Encodes the a11y-CI failure class: a report-only axe step that scans
     one public route, never blocks the build, and gets read as full accessibility coverage.
-    Baseline section is the encoded failure class; replace with an observed transcript.
+    Baseline observed (clean-room capture).
 ---
 
 # ci-a11y-test

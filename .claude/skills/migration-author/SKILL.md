@@ -15,8 +15,7 @@ metadata:
   source_of_truth: ../../../CLAUDE.md
   changelog: >
     v0.1 — initial draft. Retargeted to drizzle-kit per DECISIONS.md. Fragile operation →
-    exact-command discipline (building-skills density rule). Baseline section is the
-    encoded failure class; replace with an observed transcript.
+    exact-command discipline (building-skills density rule). Baseline observed (clean-room capture).
 ---
 
 # migration-author

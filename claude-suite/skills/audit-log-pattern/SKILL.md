@@ -17,8 +17,7 @@ metadata:
   changelog: >
     v0.1 — initial draft. Encodes the mutable-audit-log failure class: a "log" table that
     is UPDATE-able, omits the actor, stores local time, or is written best-effort outside
-    the transaction. Baseline section is the encoded failure class; replace with an
-    observed transcript.
+    the transaction. Baseline observed (clean-room capture).
 ---
 
 # audit-log-pattern

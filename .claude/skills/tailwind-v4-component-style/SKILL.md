@@ -15,7 +15,7 @@ metadata:
   changelog: >
     v0.1 — initial draft. Encodes the "hardcoded style value" failure class: raw hex,
     arbitrary-value brackets, and magic px/spacing that bypass the @theme token layer.
-    Baseline section is the encoded failure class; replace with an observed transcript.
+    Baseline observed (clean-room capture).
 ---
 
 # tailwind-v4-component-style

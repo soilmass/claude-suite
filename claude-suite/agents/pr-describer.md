@@ -40,8 +40,8 @@ did not observe.
 3. **Enumerate the changes.** Group by area (schema/data, API, UI, infra) into a concise
    bulleted changelog; note migrations and any fork recorded in `DECISIONS.md`.
 4. **Collect gate results.** Determine, from CI logs / status checks / artifacts you can read,
-   which gates ran and their outcome: `rule-audit`, `a11y-gate`, `security-pass`, plus the
-   deterministic CI gates (performance budget at p75, dependency scan). Report each as
+   which gates ran and their outcome: `rule-audit`, `a11y-gate`, `security-pass`, `design-gate`,
+   plus the deterministic CI gates (performance budget at p75, dependency scan). Report each as
    passed / failed / not run with where you saw it. Do not run the gates yourself.
 5. **Assess risk.** Name the blast radius: destructive/expand-contract migrations, auth- or
    ownership-touching procedures (Rule 2), boundary changes (Rule 8), edge-runtime

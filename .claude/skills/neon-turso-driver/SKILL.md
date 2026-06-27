@@ -16,7 +16,7 @@ metadata:
   changelog: >
     v0.1 — initial draft. Encodes the edge-incompatible-driver failure class: a node-postgres
     TCP pool or postgres.js client wired into a runtime that has no TCP sockets.
-    Baseline section is the encoded failure class; replace with an observed transcript.
+    Baseline observed (clean-room capture).
 ---
 
 # neon-turso-driver

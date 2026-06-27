@@ -137,7 +137,7 @@ async function upsertSubscription(sub: SubObject, eventCreated: number): Promise
       updatedAt: new Date(),
     },
     // skip the write if a newer period is already stored (drops stale out-of-order updates)
-    where: lte(subscriptions.currentPeriodEnd, periodEnd),
+    setWhere: lte(subscriptions.currentPeriodEnd, periodEnd),
   });
 }
 ```

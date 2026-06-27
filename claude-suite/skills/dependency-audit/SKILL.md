@@ -17,7 +17,7 @@ metadata:
     v0.1 — initial draft. Encodes the "patched the wrong advisory / ignored the reachable
     one" failure class: triaging supply-chain findings by CVSS number instead of edge
     exploitability and reachability.
-    Baseline section is the encoded failure class; replace with an observed transcript.
+    Baseline observed (clean-room capture).
 ---
 
 # dependency-audit

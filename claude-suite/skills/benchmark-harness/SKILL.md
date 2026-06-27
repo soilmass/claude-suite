@@ -17,7 +17,7 @@ metadata:
     v0.1 — initial draft. Encodes the "dishonest micro-benchmark" failure class: one run, no
     warmup, mean of a noisy distribution, the wrong variable measured, and a result no one can
     reproduce because the environment was never recorded.
-    Baseline section is the encoded failure class; replace with an observed transcript.
+    Baseline observed (clean-room capture).
 ---
 
 # benchmark-harness

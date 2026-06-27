@@ -23,7 +23,7 @@ metadata:
     `process.env` (or worse, exposed `NEXT_PUBLIC_*`, Rule 9), an unvalidated recipient/payload
     (Rule 8), no idempotency so a retry double-sends, fire-and-forget delivery with no
     bounce/complaint handling, and `console.log` of the full recipient address and rendered
-    body. Baseline section is the encoded failure class; replace with an observed transcript.
+    body. Baseline observed (clean-room capture).
 ---
 
 # transactional-email

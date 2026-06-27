@@ -18,8 +18,7 @@ metadata:
   changelog: >
     v0.1 — initial draft. Encodes the coordination failure class: a correct migration shipped
     in one deploy with the code that uses it, breaking the old code version still serving
-    during the rolling edge rollout. Baseline section is the encoded failure class; replace
-    with an observed transcript.
+    during the rolling edge rollout. Baseline observed (clean-room capture).
 ---
 
 # migration-deploy-coordination

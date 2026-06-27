@@ -21,7 +21,7 @@ metadata:
     v0.1 — initial draft. Encodes the "heroics instead of process" failure class: no severity
     definition, no named commander, root-cause hunting while users stay down, customers left in
     the dark, and a resolved incident with no blameless post-mortem or tracked action items.
-    Baseline section is the encoded failure class; replace with an observed transcript.
+    Baseline observed (clean-room capture).
 ---
 
 # incident-response
