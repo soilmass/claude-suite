@@ -2,3 +2,4 @@ node_modules/
 *.log
 .DS_Store
 .wf-*.mjs
+claude-suite/tests/trigger-fidelity/.catalog.md
